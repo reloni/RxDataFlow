@@ -1,5 +1,5 @@
 //
-//  RxStateTests.swift
+//  RxStoreTests.swift
 //  RxStateTests
 //
 //  Created by Anton Efimenko on 02.11.16.
@@ -20,4 +20,6 @@ class RxStateTests: XCTestCase {
 		// Put teardown code here. This method is called after the invocation of each test method in the class.
 		super.tearDown()
 	}
+	
+	
 }
