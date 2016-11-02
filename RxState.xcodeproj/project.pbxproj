@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		6E130F2C1DCA66A2006DC5ED /* RxState.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E130F221DCA66A1006DC5ED /* RxState.framework */; };
 		6E130F311DCA66A2006DC5ED /* RxStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E130F301DCA66A2006DC5ED /* RxStateTests.swift */; };
-		6E130F331DCA66A2006DC5ED /* RxState.h in Headers */ = {isa = PBXBuildFile; fileRef = 6E130F251DCA66A1006DC5ED /* RxState.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -24,7 +23,6 @@
 
 /* Begin PBXFileReference section */
 		6E130F221DCA66A1006DC5ED /* RxState.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RxState.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		6E130F251DCA66A1006DC5ED /* RxState.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RxState.h; sourceTree = "<group>"; };
 		6E130F261DCA66A1006DC5ED /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6E130F2B1DCA66A2006DC5ED /* RxStateTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RxStateTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6E130F301DCA66A2006DC5ED /* RxStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RxStateTests.swift; sourceTree = "<group>"; };
@@ -71,7 +69,6 @@
 		6E130F241DCA66A1006DC5ED /* RxState */ = {
 			isa = PBXGroup;
 			children = (
-				6E130F251DCA66A1006DC5ED /* RxState.h */,
 				6E130F261DCA66A1006DC5ED /* Info.plist */,
 			);
 			path = RxState;
@@ -93,7 +90,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6E130F331DCA66A2006DC5ED /* RxState.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
