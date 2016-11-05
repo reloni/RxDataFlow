@@ -69,7 +69,7 @@ class RxStateTests: XCTestCase {
 		
 		_ = store.state.subscribe(onNext: { next in
 			guard next.setBy is ChangeTextValueAction else { return }
-			guard next.state.text == "New text" else { return }
+			XCTAssertEqual(next.state.text, "New text")
 			completeExpectation.fulfill()
 		})
 		
