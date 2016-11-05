@@ -16,6 +16,7 @@ before_install:
 before_script:
 - carthage version
 - carthage checkout
+mkdir -p ./Carthage/Build/iOS
 #build RxSwift
 - (cd ./Carthage/Checkouts/RxSwift && set -o pipefail && xcodebuild -scheme "RxSwift-iOS" -workspace "Rx.xcworkspace" -sdk "$SDK" -configuration Release SYMROOT=../../../Build  | xcpretty -c)
 
