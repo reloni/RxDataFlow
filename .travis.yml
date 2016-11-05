@@ -1,0 +1,31 @@
+language: objective-c
+osx_image: xcode8
+xcode_project: RxHttpClient.xcodeproj
+
+env:
+  global:
+  #- WORKSPACE=
+  - PROJECT=RxState.xcodeproj
+  - FRAMEWORK_SCHEME=RxState
+  - SDK=iphonesimulator10.0
+  - DESTINATION_PLATFORM='platform=iOS Simulator,name=iPhone 6s,OS=10.0'
+
+before_install:
+  - SIMULATOR_ID=$(xcrun instruments -s | grep -o "iPhone 6s (10.0) \[.*\]" | grep -o "\[.*\]" | sed "s/^\[\(.*\)\]$/\1/")
+
+before_script:
+- carthage version
+- carthage checkout
+- mkdir -p ./Carthage/Build/iOS
+#build RxSwift
+- (cd ./Carthage/Checkouts/RxSwift && set -o pipefail && xcodebuild -scheme "RxSwift-iOS" -workspace "Rx.xcworkspace" -sdk "$SDK" -configuration Release SYMROOT=../../../Build  | xcpretty -c)
+
+#copy RxSwift frameworks to Carthage/Build folder
+- cp -R -f ./Build/Release-iphonesimulator/ ./Carthage/Build/iOS
+
+script:
+- open -a "simulator" --args -CurrentDeviceUDID $SIMULATOR_ID
+- set -o pipefail && xcodebuild -scheme "$FRAMEWORK_SCHEME" -project "$PROJECT" -sdk "$SDK" -configuration Debug ONLY_ACTIVE_ARCH=YES -destination "$DESTINATION_PLATFORM" -enableCodeCoverage YES GCC_INSTRUMENT_PROGRAM_FLOW_ARCS=YES GCC_GENERATE_TEST_COVERAGE_FILES=YES clean test  | xcpretty -c
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash) -J '^RxState$'
