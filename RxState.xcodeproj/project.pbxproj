@@ -11,6 +11,7 @@
 		6E130F311DCA66A2006DC5ED /* RxStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E130F301DCA66A2006DC5ED /* RxStoreTests.swift */; };
 		6E2473131DCA6A1800408217 /* RxStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E2473121DCA6A1800408217 /* RxStore.swift */; };
 		6E2473161DCA6AB800408217 /* RxSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E2473151DCA6AB800408217 /* RxSwift.framework */; };
+		6E3E18011DCE28D20087604D /* RxSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E2473151DCA6AB800408217 /* RxSwift.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +47,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6E3E18011DCE28D20087604D /* RxSwift.framework in Frameworks */,
 				6E130F2C1DCA66A2006DC5ED /* RxState.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -405,6 +407,10 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				DEVELOPMENT_TEAM = SJMSRXG797;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = RxStateTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.AntonEfimenko.RxStateTests;
@@ -418,6 +424,10 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				DEVELOPMENT_TEAM = SJMSRXG797;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = RxStateTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.AntonEfimenko.RxStateTests;

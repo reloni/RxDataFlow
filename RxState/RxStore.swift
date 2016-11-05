@@ -11,24 +11,49 @@ import RxSwift
 
 public protocol RxStateType { }
 public protocol RxReducerType {
-	func handle(_ action: RxActionType, state: RxStateType) -> Observable<RxStateType>
+	func handle(_ action: RxActionType, actionResult: RxActionResultType, currentState: RxStateType) -> Observable<RxStateType>
 }
-public protocol RxActionType { }
+public protocol RxActionType {
+	var work: () -> Observable<RxActionResultType> { get }
+}
+public protocol RxActionResultType { }
+
+public struct InitialStateAction : RxActionType {
+	public var work: () -> Observable<RxActionResultType> {
+		return {
+			return Observable<RxActionResultType>.empty()
+		}
+	}
+}
+
+public struct DefaultActionResult<T> : RxActionResultType {
+	public let value: T
+	public init(_ value: T) {
+		self.value = value
+	}
+}
 
 public final class RxStore<State: RxStateType> {
-	let currentState: Variable<State>
+	let currentStateVariable: Variable<(setBy: RxActionType, state: State)>
 	let reducer: RxReducerType
 	let dispatcher = SerialDispatchQueueScheduler(qos: .utility, internalSerialQueueName: "RxStore.DispatchQueue")
 	
 	public init(reducer: RxReducerType, initialState: State) {
 		self.reducer = reducer
-		currentState = Variable(initialState)
+		currentStateVariable = Variable((setBy: InitialStateAction() as RxActionType, state: initialState))
 	}
 	
-	public func dispatch(_ action: RxActionType) -> Disposable {
-		return reducer.handle(action, state: currentState.value).subscribeOn(dispatcher)
-			.do(onNext: { [weak self] next in self?.currentState.value = next as! State }).subscribe()
+	public func dispatch(_ action: RxActionType) -> Disposable? {
+		return action.work().observeOn(dispatcher).flatMapLatest { [weak self] result -> Observable<RxStateType> in
+			guard let currentState = self?.currentStateVariable.value else { return Observable.empty() }
+			return self?.reducer.handle(action, actionResult: result, currentState: currentState.state) ?? Observable.empty()
+			}
+			.observeOn(dispatcher)
+			.subscribe(onNext: { [weak self] next in
+				self?.currentStateVariable.value = (setBy: action, state: next as! State)
+			})
 	}
 	
-	public var state: Observable<State> { return currentState.asObservable().observeOn(dispatcher) }
+	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateVariable.asObservable().observeOn(dispatcher) }
+	public var stateValue: (setBy: RxActionType, state: State) { return currentStateVariable.value }
 }
