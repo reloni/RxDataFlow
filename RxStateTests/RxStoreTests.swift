@@ -63,7 +63,7 @@ class RxStateTests: XCTestCase {
 		waitForExpectations(timeout: 1, handler: nil)
 	}
 	
-	func testPerformAction() {
+	func testPerformAction() {		
 		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
 		let completeExpectation = expectation(description: "Should change state")
 		
