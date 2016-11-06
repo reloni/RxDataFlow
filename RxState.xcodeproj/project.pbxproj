@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6E111B8B1DCF9FFB006C8FE2 /* Types.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E111B8A1DCF9FFB006C8FE2 /* Types.swift */; };
 		6E130F2C1DCA66A2006DC5ED /* RxState.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E130F221DCA66A1006DC5ED /* RxState.framework */; };
 		6E130F311DCA66A2006DC5ED /* RxStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E130F301DCA66A2006DC5ED /* RxStoreTests.swift */; };
 		6E2473131DCA6A1800408217 /* RxStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E2473121DCA6A1800408217 /* RxStore.swift */; };
@@ -25,6 +26,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		6E111B8A1DCF9FFB006C8FE2 /* Types.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Types.swift; sourceTree = "<group>"; };
 		6E130F221DCA66A1006DC5ED /* RxState.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RxState.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6E130F261DCA66A1006DC5ED /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6E130F2B1DCA66A2006DC5ED /* RxStateTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RxStateTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -77,6 +79,7 @@
 		6E130F241DCA66A1006DC5ED /* RxState */ = {
 			isa = PBXGroup;
 			children = (
+				6E111B8A1DCF9FFB006C8FE2 /* Types.swift */,
 				6E2473121DCA6A1800408217 /* RxStore.swift */,
 				6E130F261DCA66A1006DC5ED /* Info.plist */,
 			);
@@ -232,6 +235,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6E2473131DCA6A1800408217 /* RxStore.swift in Sources */,
+				6E111B8B1DCF9FFB006C8FE2 /* Types.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

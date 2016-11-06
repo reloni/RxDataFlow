@@ -9,30 +9,6 @@
 import Foundation
 import RxSwift
 
-public protocol RxStateType { }
-public protocol RxReducerType {
-	func handle(_ action: RxActionType, actionResult: RxActionResultType, currentState: RxStateType) -> Observable<RxStateType>
-}
-public protocol RxActionType {
-	var work: () -> Observable<RxActionResultType> { get }
-}
-public protocol RxActionResultType { }
-
-public struct InitialStateAction : RxActionType {
-	public var work: () -> Observable<RxActionResultType> {
-		return {
-			return Observable<RxActionResultType>.empty()
-		}
-	}
-}
-
-public struct DefaultActionResult<T> : RxActionResultType {
-	public let value: T
-	public init(_ value: T) {
-		self.value = value
-	}
-}
-
 public final class RxStore<State: RxStateType> {
 	let currentStateVariable: Variable<(setBy: RxActionType, state: State)>
 	let reducer: RxReducerType
@@ -40,7 +16,7 @@ public final class RxStore<State: RxStateType> {
 	
 	public init(reducer: RxReducerType, initialState: State) {
 		self.reducer = reducer
-		currentStateVariable = Variable((setBy: InitialStateAction() as RxActionType, state: initialState))
+		currentStateVariable = Variable((setBy: RxInitialStateAction() as RxActionType, state: initialState))
 	}
 	
 	public func dispatch(_ action: RxActionType) -> Disposable? {

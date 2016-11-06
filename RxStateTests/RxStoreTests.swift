@@ -18,7 +18,7 @@ struct ChangeTextValueAction : RxActionType {
 	let newText: String
 	var work: () -> Observable<RxActionResultType> {
 		return {
-			Observable.just(DefaultActionResult(self.newText))
+			Observable.just(RxDefaultActionResult(self.newText))
 		}
 	}
 }
@@ -26,7 +26,7 @@ struct ChangeTextValueAction : RxActionType {
 struct TestStoreReducer : RxReducerType {
 	func handle(_ action: RxActionType, actionResult: RxActionResultType, currentState: RxStateType) -> Observable<RxStateType> {
 		switch action {
-		case _ as ChangeTextValueAction: return Observable.just(TestState(text: (actionResult as! DefaultActionResult).value))
+		case _ as ChangeTextValueAction: return Observable.just(TestState(text: (actionResult as! RxDefaultActionResult).value))
 		default: return Observable.empty()
 		}
 	}
@@ -47,7 +47,7 @@ class RxStateTests: XCTestCase {
 	func testInitialState() {
 		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
 		XCTAssertEqual(store.stateValue.state.text, "Initial value")
-		XCTAssertNotNil(store.stateValue.setBy as? InitialStateAction)
+		XCTAssertNotNil(store.stateValue.setBy as? RxInitialStateAction)
 	}
 	
 	func testReturnCurrentStateOnSubscribe() {
@@ -55,7 +55,7 @@ class RxStateTests: XCTestCase {
 		let completeExpectation = expectation(description: "Should return initial state")
 		
 		_ = store.state.subscribe(onNext: { next in
-			guard next.setBy is InitialStateAction else { return }
+			guard next.setBy is RxInitialStateAction else { return }
 			guard next.state.text == "Initial value" else { return }
 			completeExpectation.fulfill()
 		})
