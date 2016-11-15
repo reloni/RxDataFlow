@@ -8,7 +8,7 @@
 
 import XCTest
 import RxSwift
-import RxState
+@testable import RxState
 
 struct TestState : RxStateType {
 	let text: String
@@ -48,6 +48,10 @@ class RxStateTests: XCTestCase {
 		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
 		XCTAssertEqual(store.stateValue.state.text, "Initial value")
 		XCTAssertNotNil(store.stateValue.setBy as? RxInitialStateAction)
+		
+		XCTAssertEqual(store.stateStack.count, 1)
+		XCTAssertEqual(store.stateStack.peek()?.state.text, "Initial value")
+		XCTAssertTrue(store.stateStack.peek()?.setBy is RxInitialStateAction)
 	}
 	
 	func testReturnCurrentStateOnSubscribe() {
@@ -76,5 +80,34 @@ class RxStateTests: XCTestCase {
 		_ = store.dispatch(ChangeTextValueAction(newText: "New text"))
 		
 		waitForExpectations(timeout: 1, handler: nil)
+		
+		XCTAssertEqual(store.stateStack.count, 2)
+		XCTAssertEqual(store.stateStack.peek()?.state.text, "New text")
+		XCTAssertTrue(store.stateStack.peek()?.setBy is ChangeTextValueAction)
+	}
+	
+	func testTrimHistory() {
+		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"), maxHistoryItems: 10)
+		let completeExpectation = expectation(description: "Should change state")
+
+		let counter = 10
+		
+		var newStateCounter = 0
+		_ = store.state.skip(1).subscribe(onNext: { _ in
+			newStateCounter += 1
+			if newStateCounter == 10 {
+				completeExpectation.fulfill()
+			}
+		})
+		
+		for i in 0...counter {
+			store.dispatch(ChangeTextValueAction(newText: "New text \(i)"))
+		}
+		
+		waitForExpectations(timeout: 1, handler: nil)
+		
+		XCTAssertEqual(store.stateStack.count, 10)
+		XCTAssertEqual(store.stateStack.pop()?.state.text, "New text 10")
+		XCTAssertEqual(store.stateStack.first()?.state.text, "New text 1")
 	}
 }

@@ -10,26 +10,32 @@ import Foundation
 import RxSwift
 
 public final class RxStore<State: RxStateType> {
-	let currentStateVariable: Variable<(setBy: RxActionType, state: State)>
+	let bag = DisposeBag()
+	let actionSubject = PublishSubject<RxActionType>()
+	let currentStateSubject: BehaviorSubject<(setBy: RxActionType, state: State)>
 	let reducer: RxReducerType
-	let dispatcher = SerialDispatchQueueScheduler(qos: .utility, internalSerialQueueName: "RxStore.DispatchQueue")
+	let scheduler = SerialDispatchQueueScheduler(qos: .utility, internalSerialQueueName: "RxStore.DispatchQueue")
+	var stateStack: FixedStack<(setBy: RxActionType, state: State)>
 	
-	public init(reducer: RxReducerType, initialState: State) {
+	public init(reducer: RxReducerType, initialState: State, maxHistoryItems: UInt = 50) {
 		self.reducer = reducer
-		currentStateVariable = Variable((setBy: RxInitialStateAction() as RxActionType, state: initialState))
+		stateStack = FixedStack(capacity: maxHistoryItems)
+		currentStateSubject = BehaviorSubject(value: (setBy: RxInitialStateAction() as RxActionType, state: initialState))
+		currentStateSubject.subscribe(onNext: { [unowned self] newState in self.stateStack.push(newState) }).addDisposableTo(bag)
 	}
+}
+
+extension RxStore {
+	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject.asObservable().observeOn(scheduler) }
+	public var stateValue: (setBy: RxActionType, state: State) { return stateStack.peek()! }
 	
-	public func dispatch(_ action: RxActionType) -> Disposable? {
-		return action.work().observeOn(dispatcher).flatMapLatest { [weak self] result -> Observable<RxStateType> in
-			guard let currentState = self?.currentStateVariable.value else { return Observable.empty() }
-			return self?.reducer.handle(action, actionResult: result, currentState: currentState.state) ?? Observable.empty()
+	public func dispatch(_ action: RxActionType) {
+		action.work().observeOn(scheduler).flatMapLatest { [unowned self] result -> Observable<RxStateType> in
+			return self.reducer.handle(action, actionResult: result, currentState: self.stateStack.peek()!.state)
 			}
-			.observeOn(dispatcher)
-			.subscribe(onNext: { [weak self] next in
-				self?.currentStateVariable.value = (setBy: action, state: next as! State)
-			})
+			.observeOn(scheduler)
+			.subscribe(onNext: { [unowned self] next in
+				self.currentStateSubject.onNext((setBy: action, state: next as! State))
+			}).addDisposableTo(bag)
 	}
-	
-	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateVariable.asObservable().observeOn(dispatcher) }
-	public var stateValue: (setBy: RxActionType, state: State) { return currentStateVariable.value }
 }

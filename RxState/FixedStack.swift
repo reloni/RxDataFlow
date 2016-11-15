@@ -60,4 +60,8 @@ struct FixedStack<T> {
 			return array.last ?? nil
 		}
 	}
+	
+	internal func first() -> T? {
+		return array[head]
+	}
 }
