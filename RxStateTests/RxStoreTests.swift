@@ -16,8 +16,8 @@ struct TestState : RxStateType {
 
 struct ChangeTextValueAction : RxActionType {
 	let newText: String
-	var work: () -> Observable<RxActionResultType> {
-		return {
+	var work: (RxStateType) -> Observable<RxActionResultType> {
+		return { _ in
 			Observable.just(RxDefaultActionResult(self.newText))
 		}
 	}

@@ -20,7 +20,7 @@ public final class RxStore<State: RxStateType> {
 	}
 	
 	public func dispatch(_ action: RxActionType) -> Disposable? {
-		return action.work().observeOn(dispatcher).flatMapLatest { [weak self] result -> Observable<RxStateType> in
+		return action.work(currentStateVariable.value.state).observeOn(dispatcher).flatMapLatest { [weak self] result -> Observable<RxStateType> in
 			guard let currentState = self?.currentStateVariable.value else { return Observable.empty() }
 			return self?.reducer.handle(action, actionResult: result, currentState: currentState.state) ?? Observable.empty()
 			}
