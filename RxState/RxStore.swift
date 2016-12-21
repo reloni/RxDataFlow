@@ -19,15 +19,17 @@ public final class RxStore<State: RxStateType> {
 		currentStateVariable = Variable((setBy: RxInitialStateAction() as RxActionType, state: initialState))
 	}
 	
-	public func dispatch(_ action: RxActionType) -> Disposable? {
-		return action.work(currentStateVariable.value.state).observeOn(dispatcher).flatMapLatest { [weak self] result -> Observable<RxStateType> in
-			guard let currentState = self?.currentStateVariable.value else { return Observable.empty() }
-			return self?.reducer.handle(action, actionResult: result, currentState: currentState.state) ?? Observable.empty()
+	public func dispatch(_ action: RxActionType) -> Observable<Void> {
+		return Observable.combineLatest(Observable.just(currentStateVariable.value.state),
+		                                Observable.just(reducer),
+		                                action.work(currentStateVariable.value.state).subscribeOn(dispatcher).observeOn(dispatcher)) { currentState, currentReducer, actionResult in
+																			return currentReducer.handle(action, actionResult: actionResult, currentState: currentState)
 			}
-			.observeOn(dispatcher)
-			.subscribe(onNext: { [weak self] next in
-				self?.currentStateVariable.value = (setBy: action, state: next as! State)
-			})
+			.flatMap { newState -> Observable<RxStateType> in return newState }
+			.flatMap { [weak self] newState -> Observable<Void> in
+				self?.currentStateVariable.value = (setBy: action, state: newState as! State)
+				return Observable.just()
+		}.observeOn(dispatcher)
 	}
 	
 	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateVariable.asObservable().observeOn(dispatcher) }

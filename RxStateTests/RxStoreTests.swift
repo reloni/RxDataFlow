@@ -73,7 +73,7 @@ class RxStateTests: XCTestCase {
 			completeExpectation.fulfill()
 		})
 		
-		_ = store.dispatch(ChangeTextValueAction(newText: "New text"))
+		_ = store.dispatch(ChangeTextValueAction(newText: "New text")).subscribe()
 		
 		waitForExpectations(timeout: 1, handler: nil)
 	}
