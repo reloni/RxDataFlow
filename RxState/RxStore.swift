@@ -11,6 +11,7 @@ import RxSwift
 
 public final class RxStore<State: RxStateType> {
 	let currentStateVariable: Variable<(setBy: RxActionType, state: State)>
+	let errorsSubject = PublishSubject<(state: RxStateType, action: RxActionType, error: Error)>()
 	let reducer: RxReducerType
 	let dispatcher = SerialDispatchQueueScheduler(qos: .utility, internalSerialQueueName: "RxStore.DispatchQueue")
 	
@@ -29,9 +30,16 @@ public final class RxStore<State: RxStateType> {
 			.flatMap { [weak self] newState -> Observable<Void> in
 				self?.currentStateVariable.value = (setBy: action, state: newState as! State)
 				return Observable.just()
-		}.observeOn(dispatcher)
+		}
+			.do(onError: { [weak self] error in
+				guard let object = self else { return }
+				object.errorsSubject.onNext((state: object.stateValue.state, action: action, error: error))
+			})
+			.observeOn(dispatcher)
 	}
 	
 	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateVariable.asObservable().observeOn(dispatcher) }
 	public var stateValue: (setBy: RxActionType, state: State) { return currentStateVariable.value }
+	
+	public var errors: Observable<(state: RxStateType, action: RxActionType, error: Error)> { return errorsSubject }
 }
