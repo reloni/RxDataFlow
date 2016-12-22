@@ -10,36 +10,39 @@ import Foundation
 import RxSwift
 
 public final class RxStore<State: RxStateType> {
-	let currentStateVariable: Variable<(setBy: RxActionType, state: State)>
+	let bag = DisposeBag()
+	let actionSubject = PublishSubject<RxActionType>()
+	let currentStateSubject: BehaviorSubject<(setBy: RxActionType, state: State)>
+	
 	let errorsSubject = PublishSubject<(state: RxStateType, action: RxActionType, error: Error)>()
+
 	let reducer: RxReducerType
-	let dispatcher = SerialDispatchQueueScheduler(qos: .utility, internalSerialQueueName: "RxStore.DispatchQueue")
+	let scheduler = SerialDispatchQueueScheduler(qos: .utility, internalSerialQueueName: "RxStore.DispatchQueue")
+	var stateStack: FixedStack<(setBy: RxActionType, state: State)>
 	
-	public init(reducer: RxReducerType, initialState: State) {
+	public init(reducer: RxReducerType, initialState: State, maxHistoryItems: UInt = 50) {
 		self.reducer = reducer
-		currentStateVariable = Variable((setBy: RxInitialStateAction() as RxActionType, state: initialState))
+		stateStack = FixedStack(capacity: maxHistoryItems)
+		currentStateSubject = BehaviorSubject(value: (setBy: RxInitialStateAction() as RxActionType, state: initialState))
+		currentStateSubject.subscribe(onNext: { [unowned self] newState in self.stateStack.push(newState) }).addDisposableTo(bag)
 	}
-	
-	public func dispatch(_ action: RxActionType) -> Observable<Void> {
-		return Observable.combineLatest(Observable.just(currentStateVariable.value.state),
-		                                Observable.just(reducer),
-		                                action.work(currentStateVariable.value.state).subscribeOn(dispatcher).observeOn(dispatcher)) { currentState, currentReducer, actionResult in
-																			return currentReducer.handle(action, actionResult: actionResult, currentState: currentState)
-			}
-			.flatMap { newState -> Observable<RxStateType> in return newState }
-			.flatMap { [weak self] newState -> Observable<Void> in
-				self?.currentStateVariable.value = (setBy: action, state: newState as! State)
-				return Observable.just()
-		}
-			.do(onError: { [weak self] error in
-				guard let object = self else { return }
-				object.errorsSubject.onNext((state: object.stateValue.state, action: action, error: error))
-			})
-			.observeOn(dispatcher)
-	}
-	
-	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateVariable.asObservable().observeOn(dispatcher) }
-	public var stateValue: (setBy: RxActionType, state: State) { return currentStateVariable.value }
-	
+}
+
+extension RxStore {
+	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject.asObservable().observeOn(scheduler) }
+	public var stateValue: (setBy: RxActionType, state: State) { return stateStack.peek()! }
 	public var errors: Observable<(state: RxStateType, action: RxActionType, error: Error)> { return errorsSubject }
+
+	public func dispatch(_ action: RxActionType) {
+		action.work(stateValue.state).subscribeOn(scheduler).observeOn(scheduler).flatMapLatest { [unowned self] result -> Observable<RxStateType> in
+			return self.reducer.handle(action, actionResult: result, currentState: self.stateStack.peek()!.state)
+			}
+			.observeOn(scheduler)
+			.subscribe(onNext: { [unowned self] next in
+				self.currentStateSubject.onNext((setBy: action, state: next as! State))
+			},
+			           onError: { [unowned self] error in
+                        self.errorsSubject.onNext((state: self.stateValue.state, action: action, error: error))
+            }).addDisposableTo(bag)
+	}
 }

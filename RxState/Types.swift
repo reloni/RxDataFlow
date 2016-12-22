@@ -21,7 +21,8 @@ public protocol RxActionType {
 
 public protocol RxActionResultType { }
 
-public struct RxDefaultAction<T> : RxActionType {
+
+public struct RxDefaultAction : RxActionType {
 	public var work: (RxStateType) -> Observable<RxActionResultType>
 }
 

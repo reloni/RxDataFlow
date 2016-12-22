@@ -8,7 +8,7 @@
 
 import XCTest
 import RxSwift
-import RxState
+@testable import RxState
 
 struct TestState : RxStateType {
 	let text: String
@@ -69,6 +69,10 @@ class RxStateTests: XCTestCase {
 		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
 		XCTAssertEqual(store.stateValue.state.text, "Initial value")
 		XCTAssertNotNil(store.stateValue.setBy as? RxInitialStateAction)
+		
+		XCTAssertEqual(store.stateStack.count, 1)
+		XCTAssertEqual(store.stateStack.peek()?.state.text, "Initial value")
+		XCTAssertTrue(store.stateStack.peek()?.setBy is RxInitialStateAction)
 	}
 	
 	func testReturnCurrentStateOnSubscribe() {
@@ -84,7 +88,7 @@ class RxStateTests: XCTestCase {
 		waitForExpectations(timeout: 1, handler: nil)
 	}
 	
-	func testPerformAction() {
+	func testPerformAction() {		
 		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
 		let completeExpectation = expectation(description: "Should change state")
 		
@@ -94,9 +98,38 @@ class RxStateTests: XCTestCase {
 			completeExpectation.fulfill()
 		})
 		
-		_ = store.dispatch(ChangeTextValueAction(newText: "New text")).subscribe()
+		store.dispatch(ChangeTextValueAction(newText: "New text"))
 		
 		waitForExpectations(timeout: 1, handler: nil)
+		
+		XCTAssertEqual(store.stateStack.count, 2)
+		XCTAssertEqual(store.stateStack.peek()?.state.text, "New text")
+		XCTAssertTrue(store.stateStack.peek()?.setBy is ChangeTextValueAction)
+	}
+	
+	func testTrimHistory() {
+		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"), maxHistoryItems: 10)
+		let completeExpectation = expectation(description: "Should change state")
+
+		let counter = 10
+		
+		var newStateCounter = 0
+		_ = store.state.skip(1).subscribe(onNext: { _ in
+			newStateCounter += 1
+			if newStateCounter == 10 {
+				completeExpectation.fulfill()
+			}
+		})
+		
+		for i in 0...counter {
+			store.dispatch(ChangeTextValueAction(newText: "New text \(i)"))
+		}
+		
+		waitForExpectations(timeout: 1, handler: nil)
+		
+		XCTAssertEqual(store.stateStack.count, 10)
+		XCTAssertEqual(store.stateStack.pop()?.state.text, "New text 10")
+		XCTAssertEqual(store.stateStack.first()?.state.text, "New text 1")
 	}
 	
 	func testPorformActionAndPropagateError() {
@@ -113,10 +146,10 @@ class RxStateTests: XCTestCase {
 				errorExpectation.fulfill()
 			}
 		})
-		_ = store.dispatch(ChangeTextValueAction(newText: "New text 1")).subscribe()
-		_ = store.dispatch(ChangeTextValueAction(newText: "New text 2")).subscribe()
-		_ = store.dispatch(ChangeTextValueAction(newText: "New text before error")).subscribe()
-		_ = store.dispatch(ErrorAction()).subscribe()
+		store.dispatch(ChangeTextValueAction(newText: "New text 1"))
+		store.dispatch(ChangeTextValueAction(newText: "New text 2"))
+		store.dispatch(ChangeTextValueAction(newText: "New text before error"))
+		store.dispatch(ErrorAction())
 		
 		waitForExpectations(timeout: 1, handler: nil)
 	}
@@ -134,13 +167,13 @@ class RxStateTests: XCTestCase {
 			completeExpectation.fulfill()
 		})
 		
-		_ = store.dispatch(ChangeTextValueAction(newText: "New text 1")).subscribe()
-		_ = store.dispatch(ChangeTextValueAction(newText: "New text 2")).subscribe()
-		_ = store.dispatch(ChangeTextValueAction(newText: "New text 3")).subscribe()
-		_ = store.dispatch(ErrorAction()).subscribe()
-		_ = store.dispatch(ChangeTextValueAction(newText: "New text 4")).subscribe()
-		_ = store.dispatch(ChangeTextValueAction(newText: "Last text change")).subscribe()
-		_ = store.dispatch(CompletionAction()).subscribe()
+		store.dispatch(ChangeTextValueAction(newText: "New text 1"))
+		store.dispatch(ChangeTextValueAction(newText: "New text 2"))
+		store.dispatch(ChangeTextValueAction(newText: "New text 3"))
+		store.dispatch(ErrorAction())
+		store.dispatch(ChangeTextValueAction(newText: "New text 4"))
+		store.dispatch(ChangeTextValueAction(newText: "Last text change"))
+		store.dispatch(CompletionAction())
 		
 		waitForExpectations(timeout: 1, handler: nil)
 		
