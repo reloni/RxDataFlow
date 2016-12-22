@@ -16,9 +16,29 @@ struct TestState : RxStateType {
 
 struct ChangeTextValueAction : RxActionType {
 	let newText: String
-	var work: () -> Observable<RxActionResultType> {
-		return {
+	var work: (RxStateType) -> Observable<RxActionResultType> {
+		return { _ in
 			Observable.just(RxDefaultActionResult(self.newText))
+		}
+	}
+}
+
+struct CompletionAction : RxActionType {
+	var work: (RxStateType) -> Observable<RxActionResultType> {
+		return { _ in
+			Observable.just(RxDefaultActionResult(""))
+		}
+	}
+}
+
+enum TestError : Error {
+	case someError
+}
+
+struct ErrorAction : RxActionType {
+	var work: (RxStateType) -> Observable<RxActionResultType> {
+		return { _ in
+			Observable.error(TestError.someError)
 		}
 	}
 }
@@ -27,6 +47,7 @@ struct TestStoreReducer : RxReducerType {
 	func handle(_ action: RxActionType, actionResult: RxActionResultType, currentState: RxStateType) -> Observable<RxStateType> {
 		switch action {
 		case _ as ChangeTextValueAction: return Observable.just(TestState(text: (actionResult as! RxDefaultActionResult).value))
+		case _ as CompletionAction: return Observable.just(currentState)
 		default: return Observable.empty()
 		}
 	}
@@ -77,7 +98,7 @@ class RxStateTests: XCTestCase {
 			completeExpectation.fulfill()
 		})
 		
-		_ = store.dispatch(ChangeTextValueAction(newText: "New text"))
+		store.dispatch(ChangeTextValueAction(newText: "New text"))
 		
 		waitForExpectations(timeout: 1, handler: nil)
 		
@@ -109,5 +130,53 @@ class RxStateTests: XCTestCase {
 		XCTAssertEqual(store.stateStack.count, 10)
 		XCTAssertEqual(store.stateStack.pop()?.state.text, "New text 10")
 		XCTAssertEqual(store.stateStack.first()?.state.text, "New text 1")
+	}
+	
+	func testPorformActionAndPropagateError() {
+		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
+		let errorExpectation = expectation(description: "Should rise error")
+		
+		
+		
+		_ = store.errors.subscribe(onNext: { e in
+			XCTAssertEqual(TestError.someError, e.error as! TestError)
+			XCTAssertTrue(e.action is ErrorAction)
+			XCTAssertEqual("New text before error", (e.state as? TestState)?.text)
+			if case TestError.someError = e.error {
+				errorExpectation.fulfill()
+			}
+		})
+		store.dispatch(ChangeTextValueAction(newText: "New text 1"))
+		store.dispatch(ChangeTextValueAction(newText: "New text 2"))
+		store.dispatch(ChangeTextValueAction(newText: "New text before error"))
+		store.dispatch(ErrorAction())
+		
+		waitForExpectations(timeout: 1, handler: nil)
+	}
+	
+	func testContinueWorkAfterErrorAction() {
+		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
+		let completeExpectation = expectation(description: "Should perform all non-error actions")
+		
+		var changeTextValueActionCount = 0
+		_ = store.state.filter { $0.setBy is ChangeTextValueAction }.subscribe(onNext: { next in
+			changeTextValueActionCount += 1
+		})
+		
+		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
+			completeExpectation.fulfill()
+		})
+		
+		store.dispatch(ChangeTextValueAction(newText: "New text 1"))
+		store.dispatch(ChangeTextValueAction(newText: "New text 2"))
+		store.dispatch(ChangeTextValueAction(newText: "New text 3"))
+		store.dispatch(ErrorAction())
+		store.dispatch(ChangeTextValueAction(newText: "New text 4"))
+		store.dispatch(ChangeTextValueAction(newText: "Last text change"))
+		store.dispatch(CompletionAction())
+		
+		waitForExpectations(timeout: 1, handler: nil)
+		
+		XCTAssertEqual(5, changeTextValueActionCount, "Should change text five times")
 	}
 }
