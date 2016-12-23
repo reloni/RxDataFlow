@@ -178,5 +178,6 @@ class RxStateTests: XCTestCase {
 		waitForExpectations(timeout: 1, handler: nil)
 		
 		XCTAssertEqual(5, changeTextValueActionCount, "Should change text five times")
+        XCTAssertEqual("Last text change", store.stateValue.state.text)
 	}
 }

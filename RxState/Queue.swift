@@ -6,11 +6,13 @@
 //  Copyright © 2016 Anton Efimenko. All rights reserved.
 //
 
-import Foundation
+import RxSwift
 
 public struct Queue<T> {
 	fileprivate var array = [T?]()
 	fileprivate var head = 0
+    
+    let currentItemSubject = PublishSubject<T>()
 	
 	public var isEmpty: Bool {
 		return count == 0
@@ -22,6 +24,9 @@ public struct Queue<T> {
 	
 	public mutating func enqueue(_ element: T) {
 		array.append(element)
+        if array.count == 1 {
+            self.currentItemSubject.onNext(element)
+        }
 	}
 	
 	public mutating func dequeue() -> T? {
@@ -35,6 +40,10 @@ public struct Queue<T> {
 			array.removeFirst(head)
 			head = 0
 		}
+        
+        if let current = peek() {
+            currentItemSubject.onNext(current)
+        }
 		
 		return element
 	}
