@@ -16,10 +16,20 @@ struct TestState : RxStateType {
 
 struct ChangeTextValueAction : RxActionType {
 	let newText: String
+	let subscriptionDelay: RxTimeInterval
+	let scheduler: SchedulerType?
 	var work: (RxStateType) -> Observable<RxActionResultType> {
 		return { _ in
-			Observable.just(RxDefaultActionResult(self.newText))
+			let result: Observable<RxActionResultType> = Observable.just(RxDefaultActionResult(self.newText))
+			guard let scheduler = self.scheduler else { return result }
+			return result.delaySubscription(self.subscriptionDelay, scheduler: scheduler)
 		}
+	}
+}
+
+extension ChangeTextValueAction {
+	init(newText: String) {
+		self.init(newText: newText, subscriptionDelay: 0, scheduler: nil)
 	}
 }
 
@@ -47,7 +57,7 @@ struct TestStoreReducer : RxReducerType {
 	func handle(_ action: RxActionType, actionResult: RxActionResultType, currentState: RxStateType) -> Observable<RxStateType> {
 		switch action {
 		case _ as ChangeTextValueAction: return Observable.just(TestState(text: (actionResult as! RxDefaultActionResult).value))
-		case _ as CompletionAction: return Observable.just(currentState)
+		case _ as CompletionAction: return Observable.just(TestState(text: "Completed"))
 		default: return Observable.empty()
 		}
 	}
@@ -88,7 +98,7 @@ class RxStateTests: XCTestCase {
 		waitForExpectations(timeout: 1, handler: nil)
 	}
 	
-	func testPerformAction() {		
+	func testPerformAction() {
 		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
 		let completeExpectation = expectation(description: "Should change state")
 		
@@ -110,7 +120,7 @@ class RxStateTests: XCTestCase {
 	func testTrimHistory() {
 		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"), maxHistoryItems: 10)
 		let completeExpectation = expectation(description: "Should change state")
-
+		
 		let counter = 10
 		
 		var newStateCounter = 0
@@ -178,6 +188,57 @@ class RxStateTests: XCTestCase {
 		waitForExpectations(timeout: 1, handler: nil)
 		
 		XCTAssertEqual(5, changeTextValueActionCount, "Should change text five times")
-        XCTAssertEqual("Last text change", store.stateValue.state.text)
+		XCTAssertEqual("Completed", store.stateValue.state.text)
+		let expectedStateHistoryTextValues = ["Initial value",
+		                                      "New text 1",
+		                                      "New text 2",
+		                                      "New text 3",
+		                                      "New text 4",
+		                                      "Last text change",
+		                                      "Completed"]
+		
+		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
+		
+	}
+	
+	func testSerialActionDispatch() {
+		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"), maxHistoryItems: 8)
+		let completeExpectation = expectation(description: "Should perform all non-error actions")
+		
+		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
+			completeExpectation.fulfill()
+		})
+	
+		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
+		
+		for i in 1...11 {
+			let after = (i % 2 == 0) ? 0.05 : 0
+			let action: RxActionType = {
+				if i == 11 {
+					return CompletionAction()
+				} else if i % 3 == 0 {
+					return RxDefaultAction(work: { _ in
+						return Observable.error(TestError.someError).delaySubscription(after, scheduler: delayScheduler)
+					})
+				} else {
+					return ChangeTextValueAction(newText: "Action \(i) executed", subscriptionDelay: after, scheduler: delayScheduler)
+				}
+			}()
+			
+			store.dispatch(action)
+		}
+		
+		waitForExpectations(timeout: 3, handler: nil)
+		
+		let expectedStateHistoryTextValues = ["Action 1 executed",
+		                                      "Action 2 executed",
+		                                      "Action 4 executed",
+		                                      "Action 5 executed",
+		                                      "Action 7 executed",
+		                                      "Action 8 executed",
+		                                      "Action 10 executed",
+		                                      "Completed"]
+		
+		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
 }
