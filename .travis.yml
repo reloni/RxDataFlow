@@ -1,5 +1,5 @@
 language: objective-c
-osx_image: xcode8
+osx_image: xcode8.2
 xcode_project: RxHttpClient.xcodeproj
 
 env:
@@ -7,15 +7,15 @@ env:
   #- WORKSPACE=
   - PROJECT=RxState.xcodeproj
   - FRAMEWORK_SCHEME=RxState
-  - SDK=iphonesimulator10.0
-  - DESTINATION_PLATFORM='platform=iOS Simulator,name=iPhone 6s,OS=10.0'
+  - SDK=iphonesimulator10.2
+  - DESTINATION_PLATFORM='platform=iOS Simulator,name=iPhone 6s,OS=10.2'
 
 before_install:
-  - SIMULATOR_ID=$(xcrun instruments -s | grep -o "iPhone 6s (10.0) \[.*\]" | grep -o "\[.*\]" | sed "s/^\[\(.*\)\]$/\1/")
+  - SIMULATOR_ID=$(xcrun instruments -s | grep -o "iPhone 6s (10.2) \[.*\]" | grep -o "\[.*\]" | sed "s/^\[\(.*\)\]$/\1/")
 
 before_script:
 - carthage version
-- carthage checkout
+- carthage checkout --no-use-binaries
 - mkdir -p ./Carthage/Build/iOS
 #build RxSwift
 - (cd ./Carthage/Checkouts/RxSwift && set -o pipefail && xcodebuild -scheme "RxSwift-iOS" -workspace "Rx.xcworkspace" -sdk "$SDK" -configuration Release SYMROOT=../../../Build  | xcpretty -c)
