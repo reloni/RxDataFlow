@@ -26,9 +26,10 @@ public final class RxStore<State: RxStateType> {
 	public init(reducer: RxReducerType, initialState: State, maxHistoryItems: UInt = 50) {
 		self.reducer = reducer
 		stateStack = FixedStack(capacity: maxHistoryItems)
+		stateStack.push((setBy: RxInitialStateAction() as RxActionType, state: initialState))
 		
 		currentStateSubject = BehaviorSubject(value: (setBy: RxInitialStateAction() as RxActionType, state: initialState))
-		currentStateSubject.subscribe(onNext: { [weak self] newState in self?.stateStack.push(newState) }).addDisposableTo(bag)
+		currentStateSubject.skip(1).subscribe(onNext: { [weak self] newState in self?.stateStack.push(newState) }).addDisposableTo(bag)
 		
 		actionsQueue.currentItemSubject.observeOn(scheduler)
 			.flatMap { [weak self] action -> Observable<RxStateType> in
