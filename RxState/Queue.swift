@@ -24,9 +24,9 @@ public struct Queue<T> {
 	
 	public mutating func enqueue(_ element: T) {
 		array.append(element)
-        if array.count == 1 {
-            self.currentItemSubject.onNext(element)
-        }
+		if count == 1 {
+			self.currentItemSubject.onNext(element)
+		}
 	}
 	
 	public mutating func dequeue() -> T? {

@@ -198,7 +198,6 @@ class RxStateTests: XCTestCase {
 		                                      "Completed"]
 		
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
-		
 	}
 	
 	func testSerialActionDispatch() {
@@ -237,6 +236,31 @@ class RxStateTests: XCTestCase {
 		                                      "Action 7 executed",
 		                                      "Action 8 executed",
 		                                      "Action 10 executed",
+		                                      "Completed"]
+		
+		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
+	}
+	
+	func testDispatch_1() {
+		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
+		let completeExpectation = expectation(description: "Should perform all non-error actions")
+		
+		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
+			completeExpectation.fulfill()
+		})
+		
+		store.dispatch(ChangeTextValueAction(newText: "New text 1"))
+		DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.01) { store.dispatch(ChangeTextValueAction(newText: "New text 2")) }
+		DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.1) { store.dispatch(ChangeTextValueAction(newText: "New text 3")) }
+		DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.30) { store.dispatch(CompletionAction()) }
+		
+		waitForExpectations(timeout: 1, handler: nil)
+		
+		XCTAssertEqual("Completed", store.stateValue.state.text)
+		let expectedStateHistoryTextValues = ["Initial value",
+		                                      "New text 1",
+		                                      "New text 2",
+		                                      "New text 3",
 		                                      "Completed"]
 		
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
