@@ -24,6 +24,17 @@ public final class RxActionWork {
 		self.scheduledWork = scheduledWork
 	}
 	
+	public convenience init(scheduler: ImmediateSchedulerType? = nil, scheduledWork: @escaping (RxStateType) -> RxActionResultType) {
+		let work: (RxStateType) -> Observable<RxActionResultType> = { state in
+			return Observable.create { observer in
+				observer.onNext(scheduledWork(state))
+				observer.onCompleted()
+				return Disposables.create()
+			}
+		}
+		self.init(scheduler: scheduler, scheduledWork: work)
+	}
+	
 	internal func schedule(in outerScheduler: ImmediateSchedulerType, state: RxStateType) -> Observable<RxActionResultType> {
 		guard let workScheduler = workScheduler else {
 			return scheduledWork(state).subscribeOn(outerScheduler)

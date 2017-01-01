@@ -19,7 +19,7 @@ struct ChangeTextValueWithCustomDelayAction : RxActionType {
 	let subscriptionDelay: RxTimeInterval
 	let scheduler: SchedulerType?
 	public var work: RxActionWork {
-		return RxActionWork { _ in
+		return RxActionWork { _ -> Observable<RxActionResultType> in
 			let result: Observable<RxActionResultType> = Observable.just(RxDefaultActionResult(self.newText))
 			guard let scheduler = self.scheduler else { return result }
 			return result.delaySubscription(self.subscriptionDelay, scheduler: scheduler)
@@ -421,13 +421,9 @@ class RxStateTests: XCTestCase {
 			completeExpectation.fulfill()
 		})
 		
-		let action1Work = RxActionWork(scheduler: MainScheduler.instance) { _ in
-			return Observable.create { observer in
+		let action1Work = RxActionWork(scheduler: MainScheduler.instance) { _ -> RxActionResultType in
 				XCTAssertTrue(Thread.isMainThread)
-				observer.onNext(RxDefaultActionResult("Action 1 executed"))
-				observer.onCompleted()
-				return Disposables.create()
-			}
+				return RxDefaultActionResult("Action 1 executed")
 		}
 		let action1 = ChangeTextValueAction(work: action1Work)
 		
