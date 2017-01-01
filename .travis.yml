@@ -15,13 +15,13 @@ before_install:
 
 before_script:
 - carthage version
-- carthage checkout --no-use-binaries
-- mkdir -p ./Carthage/Build/iOS
+- carthage checkout
+#- mkdir -p ./Carthage/Build/iOS
 #build RxSwift
-- (cd ./Carthage/Checkouts/RxSwift && set -o pipefail && xcodebuild -scheme "RxSwift-iOS" -workspace "Rx.xcworkspace" -sdk "$SDK" -configuration Release SYMROOT=../../../Build  | xcpretty -c)
+#- (cd ./Carthage/Checkouts/RxSwift && set -o pipefail && xcodebuild -scheme "RxSwift-iOS" -workspace "Rx.xcworkspace" -sdk "$SDK" -configuration Release SYMROOT=../../../Build  | xcpretty -c)
 
 #copy RxSwift frameworks to Carthage/Build folder
-- cp -R -f ./Build/Release-iphonesimulator/ ./Carthage/Build/iOS
+#- cp -R -f ./Build/Release-iphonesimulator/ ./Carthage/Build/iOS
 
 script:
 - open -a "simulator" --args -CurrentDeviceUDID $SIMULATOR_ID
