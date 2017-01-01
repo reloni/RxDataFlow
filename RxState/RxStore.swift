@@ -14,7 +14,7 @@ struct EmptyState : RxStateType { }
 public final class RxStore<State: RxStateType> {
 	let bag = DisposeBag()
 	let reducer: RxReducerType
-	let scheduler = SerialDispatchQueueScheduler(qos: .utility, internalSerialQueueName: "RxStore.DispatchQueue")
+	let scheduler: ImmediateSchedulerType
 	
 	var stateStack: FixedStack<(setBy: RxActionType, state: State)>
 	var actionsQueue = Queue<RxActionType>()
@@ -23,7 +23,11 @@ public final class RxStore<State: RxStateType> {
 	let currentStateSubject: BehaviorSubject<(setBy: RxActionType, state: State)>
 	let errorsSubject = PublishSubject<(state: RxStateType, action: RxActionType, error: Error)>()
 	
-	public init(reducer: RxReducerType, initialState: State, maxHistoryItems: UInt = 50) {
+	public init(reducer: RxReducerType,
+	            initialState: State,
+	            maxHistoryItems: UInt = 50,
+	            scheduler: ImmediateSchedulerType = SerialDispatchQueueScheduler(qos: .utility, internalSerialQueueName: "RxStore.DispatchQueue")) {
+		self.scheduler = scheduler
 		self.reducer = reducer
 		stateStack = FixedStack(capacity: maxHistoryItems)
 		stateStack.push((setBy: RxInitialStateAction() as RxActionType, state: initialState))
@@ -34,8 +38,8 @@ public final class RxStore<State: RxStateType> {
 		actionsQueue.currentItemSubject.observeOn(scheduler)
 			.flatMap { [weak self] action -> Observable<RxStateType> in
 				guard let object = self else { return Observable.empty() }
-				return action.work(object.stateValue.state)
-					.subscribeOn(object.scheduler).observeOn(object.scheduler).flatMapLatest { result -> Observable<RxStateType> in
+				return action.work.schedule(in: object.scheduler, state: object.stateValue.state)
+					.observeOn(object.scheduler).flatMapLatest { result -> Observable<RxStateType> in
 						return object.reducer.handle(action, actionResult: result, currentState: object.stateStack.peek()!.state)
 					}
 					.observeOn(object.scheduler)
