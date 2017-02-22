@@ -9,9 +9,9 @@
 import Foundation
 import RxSwift
 
-struct EmptyState : RxStateType { }
+//struct EmptyState : RxStateType { }
 
-public final class RxStore<State: RxStateType> {
+public final class RxDataFlowController<State: RxStateType> {
 	let bag = DisposeBag()
 	let reducer: RxReducerType
 	let scheduler: ImmediateSchedulerType
@@ -36,9 +36,23 @@ public final class RxStore<State: RxStateType> {
 		currentStateSubject.skip(1).subscribe(onNext: { [weak self] newState in self?.stateStack.push(newState) }).addDisposableTo(bag)
 		
 		actionsQueue.currentItemSubject.observeOn(scheduler)
-			.flatMap { [weak self] action -> Observable<RxStateType> in
+			.flatMap { [weak self] action -> Observable<State> in
 				guard let object = self else { return Observable.empty() }
-				return action.work.schedule(in: object.scheduler, state: object.stateValue.state)
+                
+                return object.reducer.handle(action, flowController: object).subscribeOn(action.scheduler ?? scheduler)
+                    .observeOn(object.scheduler)
+                    .do(
+                        onNext: { next in
+                            object.currentStateSubject.onNext((setBy: action, state: next))
+                    },
+                        onError: { error in
+                            object.errorsSubject.onNext((state: object.stateValue.state, action: action, error: error))
+                    },
+                        onDispose: { _ in
+                            _ = object.actionsQueue.dequeue()
+                    })
+                /*
+                return action.work.schedule(in: object.scheduler, state: object.stateValue.state)
 					.observeOn(object.scheduler).flatMapLatest { result -> Observable<RxStateType> in
 						return object.reducer.handle(action, actionResult: result, currentState: object.stateStack.peek()!.state)
 					}
@@ -52,12 +66,12 @@ public final class RxStore<State: RxStateType> {
 						},
 						onDispose: { _ in
 							_ = object.actionsQueue.dequeue()
-					}).catchErrorJustReturn(EmptyState())
+					}).catchErrorJustReturn(EmptyState())*/
 			}.subscribe().addDisposableTo(bag)
 	}
 }
 
-extension RxStore {
+extension RxDataFlowController {
 	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject.asObservable().observeOn(scheduler) }
 	public var stateValue: (setBy: RxActionType, state: State) { return stateStack.peek()! }
 	public var errors: Observable<(state: RxStateType, action: RxActionType, error: Error)> { return errorsSubject }

@@ -11,10 +11,14 @@ import RxSwift
 
 public protocol RxStateType { }
 
-public protocol RxReducerType {
-	func handle(_ action: RxActionType, actionResult: RxActionResultType, currentState: RxStateType) -> Observable<RxStateType>
-}
+//public protocol RxReducerType {
+//	func handle(_ action: RxActionType, actionResult: RxActionResultType, currentState: RxStateType) -> Observable<RxStateType>
+//}
 
+public protocol RxReducerType {
+    func handle<T: RxStateType>(_ action: RxActionType, flowController: RxDataFlowController<T>) -> Observable<T>
+}
+/*
 public final class RxActionWork {
 	public let workScheduler: ImmediateSchedulerType?
 	public let scheduledWork: (RxStateType) -> Observable<RxActionResultType>
@@ -41,23 +45,21 @@ public final class RxActionWork {
 		}
 		return scheduledWork(state).subscribeOn(workScheduler)
 	}
-}
+}*/
 
 public protocol RxActionType {
-	var work: RxActionWork { get }
+    var scheduler: ImmediateSchedulerType? { get }
 }
 
 public protocol RxActionResultType { }
 
 
 public struct RxDefaultAction : RxActionType {
-	public var work: RxActionWork
+    public var scheduler: ImmediateSchedulerType?
 }
 
 public struct RxInitialStateAction : RxActionType {
-	public var work: RxActionWork {
-		return RxActionWork { _ in Observable.empty() }
-	}
+    public var scheduler: ImmediateSchedulerType?
 }
 
 public struct RxDefaultActionResult<T> : RxActionResultType {
