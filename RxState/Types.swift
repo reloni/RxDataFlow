@@ -16,7 +16,7 @@ public protocol RxStateType { }
 //}
 
 public protocol RxReducerType {
-    func handle<T: RxStateType>(_ action: RxActionType, flowController: RxDataFlowController<T>) -> Observable<T>
+    func handle<T: RxStateType>(_ action: RxActionType, flowController: RxDataFlowController<T>) -> Observable<RxStateType>
 }
 /*
 public final class RxActionWork {
@@ -51,7 +51,7 @@ public protocol RxActionType {
     var scheduler: ImmediateSchedulerType? { get }
 }
 
-public protocol RxActionResultType { }
+//public protocol RxActionResultType { }
 
 
 public struct RxDefaultAction : RxActionType {
@@ -62,9 +62,9 @@ public struct RxInitialStateAction : RxActionType {
     public var scheduler: ImmediateSchedulerType?
 }
 
-public struct RxDefaultActionResult<T> : RxActionResultType {
-	public let value: T
-	public init(_ value: T) {
-		self.value = value
-	}
-}
+//public struct RxDefaultActionResult<T> : RxActionResultType {
+//	public let value: T
+//	public init(_ value: T) {
+//		self.value = value
+//	}
+//}

@@ -36,14 +36,14 @@ public final class RxDataFlowController<State: RxStateType> {
 		currentStateSubject.skip(1).subscribe(onNext: { [weak self] newState in self?.stateStack.push(newState) }).addDisposableTo(bag)
 		
 		actionsQueue.currentItemSubject.observeOn(scheduler)
-			.flatMap { [weak self] action -> Observable<State> in
+			.flatMap { [weak self] action -> Observable<RxStateType> in
 				guard let object = self else { return Observable.empty() }
                 
                 return object.reducer.handle(action, flowController: object).subscribeOn(action.scheduler ?? scheduler)
                     .observeOn(object.scheduler)
                     .do(
                         onNext: { next in
-                            object.currentStateSubject.onNext((setBy: action, state: next))
+                            object.currentStateSubject.onNext((setBy: action, state: next as! State))
                     },
                         onError: { error in
                             object.errorsSubject.onNext((state: object.stateValue.state, action: action, error: error))

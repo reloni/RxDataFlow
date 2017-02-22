@@ -10,39 +10,53 @@ import XCTest
 import RxSwift
 @testable import RxState
 
+
 struct TestState : RxStateType {
 	let text: String
 }
 
 struct ChangeTextValueWithCustomDelayAction : RxActionType {
 	let newText: String
-	let subscriptionDelay: RxTimeInterval
-	let scheduler: SchedulerType?
+    var scheduler: ImmediateSchedulerType?
+//	let subscriptionDelay: RxTimeInterval
+//	let scheduler: SchedulerType?
+    /*
 	public var work: RxActionWork {
 		return RxActionWork { _ -> Observable<RxActionResultType> in
 			let result: Observable<RxActionResultType> = Observable.just(RxDefaultActionResult(self.newText))
 			guard let scheduler = self.scheduler else { return result }
 			return result.delaySubscription(self.subscriptionDelay, scheduler: scheduler)
 		}
-	}
+	}*/
+}
+
+func changeTextValueWithCustomDelayDescriptor(newText: String) -> Observable<RxStateType> {
+    return .just(TestState(text: newText))
+    //let result: Observable<RxActionResultType> = Observable.just(RxDefaultActionResult(newText))
+    //return result
+    //guard let scheduler = self.scheduler else { return result }
+    //return result.delaySubscription(self.subscriptionDelay, scheduler: scheduler)
 }
 
 extension ChangeTextValueWithCustomDelayAction {
 	init(newText: String) {
-		self.init(newText: newText, subscriptionDelay: 0, scheduler: nil)
+		//self.init(newText: newText, subscriptionDelay: 0, scheduler: nil)
+        self.init(newText: newText, scheduler: nil)
 	}
 }
 
 struct ChangeTextValueAction : RxActionType {
-	let work: RxActionWork
+    var scheduler: ImmediateSchedulerType?
+	//let work: RxActionWork
 }
 
 struct CompletionAction : RxActionType {
-	public var work: RxActionWork {
-		return RxActionWork { _ in
-			Observable.just(RxDefaultActionResult(""))
-		}
-	}
+    var scheduler: ImmediateSchedulerType?
+//	public var work: RxActionWork {
+//		return RxActionWork { _ in
+//			Observable.just(RxDefaultActionResult(""))
+//		}
+//	}
 }
 
 enum TestError : Error {
@@ -50,24 +64,27 @@ enum TestError : Error {
 }
 
 struct ErrorAction : RxActionType {
-	public var work: RxActionWork {
-		return RxActionWork { _ in
-			Observable.error(TestError.someError)
-		}
-	}
+    var scheduler: ImmediateSchedulerType?
+//	public var work: RxActionWork {
+//		return RxActionWork { _ in
+//			Observable.error(TestError.someError)
+//		}
+//	}
 }
 
 struct TestStoreReducer : RxReducerType {
-	func handle(_ action: RxActionType, actionResult: RxActionResultType, currentState: RxStateType) -> Observable<RxStateType> {
-		switch action {
-		case _ as ChangeTextValueWithCustomDelayAction: return Observable.just(TestState(text: (actionResult as! RxDefaultActionResult).value))
-		case _ as CompletionAction: return Observable.just(TestState(text: "Completed"))
-		case _ as ChangeTextValueAction: return Observable.just(TestState(text: (actionResult as! RxDefaultActionResult).value))
-		default: return Observable.empty()
-		}
-	}
+    typealias T = TestState
+    func handle<T : RxStateType>(_ action: RxActionType, flowController: RxDataFlowController<T>) -> Observable<RxStateType> {
+        switch action {
+        case let a as ChangeTextValueWithCustomDelayAction: return changeTextValueWithCustomDelayDescriptor(newText: a.newText)
+            //Observable.just(TestState(text: (actionResult as! RxDefaultActionResult).value))
+        //case _ as CompletionAction: return Observable.just(TestState(text: "Completed"))
+        //case _ as ChangeTextValueAction: return Observable.just(TestState(text: (actionResult as! RxDefaultActionResult).value))
+        default: return Observable.empty()
+        }
+    }
 }
-
+/*
 class RxStateTests: XCTestCase {
 	
 	override func setUp() {
@@ -439,4 +456,4 @@ class RxStateTests: XCTestCase {
 		XCTAssertEqual(1, storeScheduler.scheduleCounter)
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
-}
+}*/
