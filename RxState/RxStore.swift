@@ -9,7 +9,7 @@
 import Foundation
 import RxSwift
 
-//struct EmptyState : RxStateType { }
+struct EmptyState : RxStateType { }
 
 public final class RxDataFlowController<State: RxStateType> {
 	let bag = DisposeBag()
@@ -50,7 +50,7 @@ public final class RxDataFlowController<State: RxStateType> {
                     },
                         onDispose: { _ in
                             _ = object.actionsQueue.dequeue()
-                    })
+                    }).catchErrorJustReturn(EmptyState())
                 /*
                 return action.work.schedule(in: object.scheduler, state: object.stateValue.state)
 					.observeOn(object.scheduler).flatMapLatest { result -> Observable<RxStateType> in

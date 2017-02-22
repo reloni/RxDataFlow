@@ -45,8 +45,9 @@ extension ChangeTextValueWithCustomDelayAction {
 	}
 }
 
-struct ChangeTextValueAction : RxActionType {
+struct CustomDescriptorAction : RxActionType {
     var scheduler: ImmediateSchedulerType?
+    let descriptor: Observable<RxStateType>
 	//let work: RxActionWork
 }
 
@@ -57,6 +58,10 @@ struct CompletionAction : RxActionType {
 //			Observable.just(RxDefaultActionResult(""))
 //		}
 //	}
+}
+
+func completionDescriptor() -> Observable<RxStateType> {
+    return .just(TestState(text: "Completed"))
 }
 
 enum TestError : Error {
@@ -71,6 +76,10 @@ struct ErrorAction : RxActionType {
 //		}
 //	}
 }
+func errorDescriptor() -> Observable<RxStateType> {
+    return .error(TestError.someError)
+}
+
 
 struct TestStoreReducer : RxReducerType {
     typealias T = TestState
@@ -78,13 +87,14 @@ struct TestStoreReducer : RxReducerType {
         switch action {
         case let a as ChangeTextValueWithCustomDelayAction: return changeTextValueWithCustomDelayDescriptor(newText: a.newText)
             //Observable.just(TestState(text: (actionResult as! RxDefaultActionResult).value))
-        //case _ as CompletionAction: return Observable.just(TestState(text: "Completed"))
-        //case _ as ChangeTextValueAction: return Observable.just(TestState(text: (actionResult as! RxDefaultActionResult).value))
+        case _ as CompletionAction: return completionDescriptor()//Observable.just(TestState(text: "Completed"))
+        case let a as CustomDescriptorAction: return a.descriptor //Observable.just(TestState(text: (actionResult as! RxDefaultActionResult).value))
+        case _ as ErrorAction: return errorDescriptor()
         default: return Observable.empty()
         }
     }
 }
-/*
+
 class RxStateTests: XCTestCase {
 	
 	override func setUp() {
@@ -98,7 +108,7 @@ class RxStateTests: XCTestCase {
 	}
 	
 	func testInitialState() {
-		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
+		let store = RxDataFlowController(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
 		XCTAssertEqual(store.stateValue.state.text, "Initial value")
 		XCTAssertNotNil(store.stateValue.setBy as? RxInitialStateAction)
 		
@@ -108,7 +118,7 @@ class RxStateTests: XCTestCase {
 	}
 	
 	func testReturnCurrentStateOnSubscribe() {
-		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
+		let store = RxDataFlowController(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
 		let completeExpectation = expectation(description: "Should return initial state")
 		
 		_ = store.state.subscribe(onNext: { next in
@@ -121,7 +131,7 @@ class RxStateTests: XCTestCase {
 	}
 	
 	func testPerformAction() {
-		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
+		let store = RxDataFlowController(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
 		let completeExpectation = expectation(description: "Should change state")
 		
 		_ = store.state.subscribe(onNext: { next in
@@ -140,7 +150,7 @@ class RxStateTests: XCTestCase {
 	}
 	
 	func testTrimHistory() {
-		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"), maxHistoryItems: 10)
+		let store = RxDataFlowController(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"), maxHistoryItems: 10)
 		let completeExpectation = expectation(description: "Should change state")
 		
 		let counter = 10
@@ -164,11 +174,10 @@ class RxStateTests: XCTestCase {
 		XCTAssertEqual(store.stateStack.first()?.state.text, "New text 1")
 	}
 	
+    
 	func testPorformActionAndPropagateError() {
-		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
+		let store = RxDataFlowController(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
 		let errorExpectation = expectation(description: "Should rise error")
-		
-		
 		
 		_ = store.errors.subscribe(onNext: { e in
 			XCTAssertEqual(TestError.someError, e.error as! TestError)
@@ -187,7 +196,7 @@ class RxStateTests: XCTestCase {
 	}
 	
 	func testContinueWorkAfterErrorAction() {
-		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
+		let store = RxDataFlowController(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
 		var changeTextValueActionCount = 0
@@ -222,8 +231,9 @@ class RxStateTests: XCTestCase {
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
 	
+    /*
 	func testSerialActionDispatch() {
-		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"), maxHistoryItems: 8)
+		let store = RxDataFlowController(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"), maxHistoryItems: 8)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
@@ -456,4 +466,6 @@ class RxStateTests: XCTestCase {
 		XCTAssertEqual(1, storeScheduler.scheduleCounter)
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
-}*/
+    
+    */
+}
