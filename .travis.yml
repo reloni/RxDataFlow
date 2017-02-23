@@ -1,12 +1,11 @@
 language: objective-c
 osx_image: xcode8.2
-xcode_project: RxHttpClient.xcodeproj
 
 env:
   global:
   #- WORKSPACE=
-  - PROJECT=RxState.xcodeproj
-  - FRAMEWORK_SCHEME=RxState
+  - PROJECT=RxDataFlow.xcodeproj
+  - FRAMEWORK_SCHEME=RxDataFlow-iOS
   - SDK=iphonesimulator10.2
   - DESTINATION_PLATFORM='platform=iOS Simulator,name=iPhone 6s,OS=10.1'
 
