@@ -1,5 +1,5 @@
 //
-//  RxStoreTests.swift
+//  RxDataFlow.swift
 //  RxStateTests
 //
 //  Created by Anton Efimenko on 02.11.16.

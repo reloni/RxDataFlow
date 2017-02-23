@@ -1,5 +1,5 @@
 //
-//  RxStore.swift
+//  RxDataFlowController.swift
 //  RxState
 //
 //  Created by Anton Efimenko on 02.11.16.
@@ -8,8 +8,6 @@
 
 import Foundation
 import RxSwift
-
-struct EmptyState : RxStateType { }
 
 public final class RxDataFlowController<State: RxStateType> {
 	let bag = DisposeBag()
@@ -51,22 +49,6 @@ public final class RxDataFlowController<State: RxStateType> {
                         onDispose: { _ in
                             _ = object.actionsQueue.dequeue()
                     }).catchErrorJustReturn(EmptyState())
-                /*
-                return action.work.schedule(in: object.scheduler, state: object.stateValue.state)
-					.observeOn(object.scheduler).flatMapLatest { result -> Observable<RxStateType> in
-						return object.reducer.handle(action, actionResult: result, currentState: object.stateStack.peek()!.state)
-					}
-					.observeOn(object.scheduler)
-					.do(
-						onNext: { next in
-							object.currentStateSubject.onNext((setBy: action, state: next as! State))
-						},
-						onError: { error in
-							object.errorsSubject.onNext((state: object.stateValue.state, action: action, error: error))
-						},
-						onDispose: { _ in
-							_ = object.actionsQueue.dequeue()
-					}).catchErrorJustReturn(EmptyState())*/
 			}.subscribe().addDisposableTo(bag)
 	}
 }

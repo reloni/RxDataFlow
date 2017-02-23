@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "6E130F211DCA66A1006DC5ED"
-               BuildableName = "RxState.framework"
-               BlueprintName = "RxState"
-               ReferencedContainer = "container:RxState.xcodeproj">
+               BuildableName = "RxDataFlow.framework"
+               BlueprintName = "RxDataFlow"
+               ReferencedContainer = "container:RxDataFlow.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -34,9 +34,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "6E130F2A1DCA66A2006DC5ED"
-               BuildableName = "RxStateTests.xctest"
-               BlueprintName = "RxStateTests"
-               ReferencedContainer = "container:RxState.xcodeproj">
+               BuildableName = "RxDataFlowTests.xctest"
+               BlueprintName = "RxDataFlowTests"
+               ReferencedContainer = "container:RxDataFlow.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -44,9 +44,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "6E130F211DCA66A1006DC5ED"
-            BuildableName = "RxState.framework"
-            BlueprintName = "RxState"
-            ReferencedContainer = "container:RxState.xcodeproj">
+            BuildableName = "RxDataFlow.framework"
+            BlueprintName = "RxDataFlow"
+            ReferencedContainer = "container:RxDataFlow.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -66,9 +66,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "6E130F211DCA66A1006DC5ED"
-            BuildableName = "RxState.framework"
-            BlueprintName = "RxState"
-            ReferencedContainer = "container:RxState.xcodeproj">
+            BuildableName = "RxDataFlow.framework"
+            BlueprintName = "RxDataFlow"
+            ReferencedContainer = "container:RxDataFlow.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -84,9 +84,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "6E130F211DCA66A1006DC5ED"
-            BuildableName = "RxState.framework"
-            BlueprintName = "RxState"
-            ReferencedContainer = "container:RxState.xcodeproj">
+            BuildableName = "RxDataFlow.framework"
+            BlueprintName = "RxDataFlow"
+            ReferencedContainer = "container:RxDataFlow.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>
