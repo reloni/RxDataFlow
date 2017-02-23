@@ -1,5 +1,5 @@
 //
-//  RxStore.swift
+//  RxDataFlowController.swift
 //  RxState
 //
 //  Created by Anton Efimenko on 02.11.16.
@@ -9,9 +9,13 @@
 import Foundation
 import RxSwift
 
-struct EmptyState : RxStateType { }
+public protocol RxDataFlowControllerType { }
 
-public final class RxStore<State: RxStateType> {
+public final class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType {
+	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject.asObservable().observeOn(scheduler) }
+	public var stateValue: (setBy: RxActionType, state: State) { return stateStack.peek()! }
+	public var errors: Observable<(state: RxStateType, action: RxActionType, error: Error)> { return errorsSubject }
+	
 	let bag = DisposeBag()
 	let reducer: RxReducerType
 	let scheduler: ImmediateSchedulerType
@@ -38,30 +42,21 @@ public final class RxStore<State: RxStateType> {
 		actionsQueue.currentItemSubject.observeOn(scheduler)
 			.flatMap { [weak self] action -> Observable<RxStateType> in
 				guard let object = self else { return Observable.empty() }
-				return action.work.schedule(in: object.scheduler, state: object.stateValue.state)
-					.observeOn(object.scheduler).flatMapLatest { result -> Observable<RxStateType> in
-						return object.reducer.handle(action, actionResult: result, currentState: object.stateStack.peek()!.state)
-					}
-					.observeOn(object.scheduler)
-					.do(
-						onNext: { next in
-							object.currentStateSubject.onNext((setBy: action, state: next as! State))
-						},
-						onError: { error in
-							object.errorsSubject.onNext((state: object.stateValue.state, action: action, error: error))
-						},
-						onDispose: { _ in
-							_ = object.actionsQueue.dequeue()
-					}).catchErrorJustReturn(EmptyState())
+                
+                return object.reducer.handle(action, flowController: object).subscribeOn(action.scheduler ?? scheduler)
+                    .observeOn(object.scheduler)
+                    .do(
+                        onNext: { next in
+                            object.currentStateSubject.onNext((setBy: action, state: next as! State))
+                    },
+                        onError: { error in
+                            object.errorsSubject.onNext((state: object.stateValue.state, action: action, error: error))
+                    },
+                        onDispose: { _ in
+                            _ = object.actionsQueue.dequeue()
+                    }).catchErrorJustReturn(EmptyState())
 			}.subscribe().addDisposableTo(bag)
 	}
-}
-
-extension RxStore {
-	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject.asObservable().observeOn(scheduler) }
-	public var stateValue: (setBy: RxActionType, state: State) { return stateStack.peek()! }
-	public var errors: Observable<(state: RxStateType, action: RxActionType, error: Error)> { return errorsSubject }
-	
 	
 	public func dispatch(_ action: RxActionType) {
 		scheduler.schedule((action, self)) { params in

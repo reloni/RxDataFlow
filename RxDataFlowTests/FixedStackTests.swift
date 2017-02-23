@@ -7,7 +7,7 @@
 //
 
 import XCTest
-@testable import RxState
+@testable import RxDataFlow
 
 class FixedQueueTests: XCTestCase {
 	

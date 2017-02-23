@@ -10,9 +10,9 @@
 		6E111B8B1DCF9FFB006C8FE2 /* Types.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E111B8A1DCF9FFB006C8FE2 /* Types.swift */; };
 		6E111B8D1DCFA98B006C8FE2 /* FixedStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E111B8C1DCFA98B006C8FE2 /* FixedStack.swift */; };
 		6E111B8F1DCFAAD6006C8FE2 /* FixedStackTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E111B8E1DCFAAD6006C8FE2 /* FixedStackTests.swift */; };
-		6E130F2C1DCA66A2006DC5ED /* RxState.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E130F221DCA66A1006DC5ED /* RxState.framework */; };
-		6E130F311DCA66A2006DC5ED /* RxStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E130F301DCA66A2006DC5ED /* RxStoreTests.swift */; };
-		6E2473131DCA6A1800408217 /* RxStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E2473121DCA6A1800408217 /* RxStore.swift */; };
+		6E130F2C1DCA66A2006DC5ED /* RxDataFlow.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E130F221DCA66A1006DC5ED /* RxDataFlow.framework */; };
+		6E130F311DCA66A2006DC5ED /* RxDataFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E130F301DCA66A2006DC5ED /* RxDataFlowTests.swift */; };
+		6E2473131DCA6A1800408217 /* RxDataFlowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E2473121DCA6A1800408217 /* RxDataFlowController.swift */; };
 		6E2473161DCA6AB800408217 /* RxSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E2473151DCA6AB800408217 /* RxSwift.framework */; };
 		6E3E18011DCE28D20087604D /* RxSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E2473151DCA6AB800408217 /* RxSwift.framework */; };
 		6ED004B81E0C4AAE00CA6E7C /* Queue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ED004B71E0C4AAE00CA6E7C /* Queue.swift */; };
@@ -33,14 +33,14 @@
 		6E111B8A1DCF9FFB006C8FE2 /* Types.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Types.swift; sourceTree = "<group>"; };
 		6E111B8C1DCFA98B006C8FE2 /* FixedStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FixedStack.swift; sourceTree = "<group>"; };
 		6E111B8E1DCFAAD6006C8FE2 /* FixedStackTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FixedStackTests.swift; sourceTree = "<group>"; };
-		6E130F221DCA66A1006DC5ED /* RxState.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RxState.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		6E130F261DCA66A1006DC5ED /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		6E130F2B1DCA66A2006DC5ED /* RxStateTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RxStateTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		6E130F301DCA66A2006DC5ED /* RxStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RxStoreTests.swift; sourceTree = "<group>"; };
-		6E130F321DCA66A2006DC5ED /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		6E2473121DCA6A1800408217 /* RxStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RxStore.swift; sourceTree = "<group>"; };
+		6E130F221DCA66A1006DC5ED /* RxDataFlow.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RxDataFlow.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		6E130F2B1DCA66A2006DC5ED /* RxDataFlowTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RxDataFlowTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		6E130F301DCA66A2006DC5ED /* RxDataFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RxDataFlowTests.swift; sourceTree = "<group>"; };
+		6E2473121DCA6A1800408217 /* RxDataFlowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RxDataFlowController.swift; sourceTree = "<group>"; };
 		6E2473151DCA6AB800408217 /* RxSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RxSwift.framework; path = Carthage/Build/iOS/RxSwift.framework; sourceTree = "<group>"; };
+		6E97D66D1E5EDA4A00EC8305 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6ED004B71E0C4AAE00CA6E7C /* Queue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Queue.swift; sourceTree = "<group>"; };
+		6EE39C4B1E5ED9520045A6E8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6EE91CA91E1934590025A4BD /* TestScheduler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestScheduler.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -58,7 +58,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6E3E18011DCE28D20087604D /* RxSwift.framework in Frameworks */,
-				6E130F2C1DCA66A2006DC5ED /* RxState.framework in Frameworks */,
+				6E130F2C1DCA66A2006DC5ED /* RxDataFlow.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -68,8 +68,8 @@
 		6E130F181DCA66A1006DC5ED = {
 			isa = PBXGroup;
 			children = (
-				6E130F241DCA66A1006DC5ED /* RxState */,
-				6E130F2F1DCA66A2006DC5ED /* RxStateTests */,
+				6E130F241DCA66A1006DC5ED /* RxDataFlow */,
+				6E130F2F1DCA66A2006DC5ED /* RxDataFlowTests */,
 				6E130F231DCA66A1006DC5ED /* Products */,
 				6E2473141DCA6AB700408217 /* Frameworks */,
 			);
@@ -78,33 +78,33 @@
 		6E130F231DCA66A1006DC5ED /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				6E130F221DCA66A1006DC5ED /* RxState.framework */,
-				6E130F2B1DCA66A2006DC5ED /* RxStateTests.xctest */,
+				6E130F221DCA66A1006DC5ED /* RxDataFlow.framework */,
+				6E130F2B1DCA66A2006DC5ED /* RxDataFlowTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		6E130F241DCA66A1006DC5ED /* RxState */ = {
+		6E130F241DCA66A1006DC5ED /* RxDataFlow */ = {
 			isa = PBXGroup;
 			children = (
 				6E111B8A1DCF9FFB006C8FE2 /* Types.swift */,
-				6E2473121DCA6A1800408217 /* RxStore.swift */,
+				6E2473121DCA6A1800408217 /* RxDataFlowController.swift */,
 				6E111B8C1DCFA98B006C8FE2 /* FixedStack.swift */,
 				6ED004B71E0C4AAE00CA6E7C /* Queue.swift */,
-				6E130F261DCA66A1006DC5ED /* Info.plist */,
+				6EE39C4B1E5ED9520045A6E8 /* Info.plist */,
 			);
-			path = RxState;
+			path = RxDataFlow;
 			sourceTree = "<group>";
 		};
-		6E130F2F1DCA66A2006DC5ED /* RxStateTests */ = {
+		6E130F2F1DCA66A2006DC5ED /* RxDataFlowTests */ = {
 			isa = PBXGroup;
 			children = (
 				6E111B8E1DCFAAD6006C8FE2 /* FixedStackTests.swift */,
-				6E130F301DCA66A2006DC5ED /* RxStoreTests.swift */,
+				6E130F301DCA66A2006DC5ED /* RxDataFlowTests.swift */,
 				6EE91CA91E1934590025A4BD /* TestScheduler.swift */,
-				6E130F321DCA66A2006DC5ED /* Info.plist */,
+				6E97D66D1E5EDA4A00EC8305 /* Info.plist */,
 			);
-			path = RxStateTests;
+			path = RxDataFlowTests;
 			sourceTree = "<group>";
 		};
 		6E2473141DCA6AB700408217 /* Frameworks */ = {
@@ -128,9 +128,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		6E130F211DCA66A1006DC5ED /* RxState */ = {
+		6E130F211DCA66A1006DC5ED /* RxDataFlow */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 6E130F361DCA66A2006DC5ED /* Build configuration list for PBXNativeTarget "RxState" */;
+			buildConfigurationList = 6E130F361DCA66A2006DC5ED /* Build configuration list for PBXNativeTarget "RxDataFlow" */;
 			buildPhases = (
 				6E130F1D1DCA66A1006DC5ED /* Sources */,
 				6E130F1E1DCA66A1006DC5ED /* Frameworks */,
@@ -141,14 +141,14 @@
 			);
 			dependencies = (
 			);
-			name = RxState;
+			name = RxDataFlow;
 			productName = RxState;
-			productReference = 6E130F221DCA66A1006DC5ED /* RxState.framework */;
+			productReference = 6E130F221DCA66A1006DC5ED /* RxDataFlow.framework */;
 			productType = "com.apple.product-type.framework";
 		};
-		6E130F2A1DCA66A2006DC5ED /* RxStateTests */ = {
+		6E130F2A1DCA66A2006DC5ED /* RxDataFlowTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 6E130F391DCA66A2006DC5ED /* Build configuration list for PBXNativeTarget "RxStateTests" */;
+			buildConfigurationList = 6E130F391DCA66A2006DC5ED /* Build configuration list for PBXNativeTarget "RxDataFlowTests" */;
 			buildPhases = (
 				6E130F271DCA66A2006DC5ED /* Sources */,
 				6E130F281DCA66A2006DC5ED /* Frameworks */,
@@ -160,9 +160,9 @@
 			dependencies = (
 				6E130F2E1DCA66A2006DC5ED /* PBXTargetDependency */,
 			);
-			name = RxStateTests;
+			name = RxDataFlowTests;
 			productName = RxStateTests;
-			productReference = 6E130F2B1DCA66A2006DC5ED /* RxStateTests.xctest */;
+			productReference = 6E130F2B1DCA66A2006DC5ED /* RxDataFlowTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -172,7 +172,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0810;
-				LastUpgradeCheck = 0810;
+				LastUpgradeCheck = 0820;
 				ORGANIZATIONNAME = "Anton Efimenko";
 				TargetAttributes = {
 					6E130F211DCA66A1006DC5ED = {
@@ -188,7 +188,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 6E130F1C1DCA66A1006DC5ED /* Build configuration list for PBXProject "RxState" */;
+			buildConfigurationList = 6E130F1C1DCA66A1006DC5ED /* Build configuration list for PBXProject "RxDataFlow" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -200,8 +200,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				6E130F211DCA66A1006DC5ED /* RxState */,
-				6E130F2A1DCA66A2006DC5ED /* RxStateTests */,
+				6E130F211DCA66A1006DC5ED /* RxDataFlow */,
+				6E130F2A1DCA66A2006DC5ED /* RxDataFlowTests */,
 			);
 		};
 /* End PBXProject section */
@@ -247,7 +247,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6E111B8D1DCFA98B006C8FE2 /* FixedStack.swift in Sources */,
-				6E2473131DCA6A1800408217 /* RxStore.swift in Sources */,
+				6E2473131DCA6A1800408217 /* RxDataFlowController.swift in Sources */,
 				6E111B8B1DCF9FFB006C8FE2 /* Types.swift in Sources */,
 				6ED004B81E0C4AAE00CA6E7C /* Queue.swift in Sources */,
 			);
@@ -258,7 +258,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6E111B8F1DCFAAD6006C8FE2 /* FixedStackTests.swift in Sources */,
-				6E130F311DCA66A2006DC5ED /* RxStoreTests.swift in Sources */,
+				6E130F311DCA66A2006DC5ED /* RxDataFlowTests.swift in Sources */,
 				6EE91CAA1E1934590025A4BD /* TestScheduler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -268,7 +268,7 @@
 /* Begin PBXTargetDependency section */
 		6E130F2E1DCA66A2006DC5ED /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 6E130F211DCA66A1006DC5ED /* RxState */;
+			target = 6E130F211DCA66A1006DC5ED /* RxDataFlow */;
 			targetProxy = 6E130F2D1DCA66A2006DC5ED /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -292,6 +292,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -345,6 +346,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -387,7 +389,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
-				INFOPLIST_FILE = RxState/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/RxDataFlow/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.AntonEfimenko.RxState;
@@ -412,7 +414,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
-				INFOPLIST_FILE = RxState/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/RxDataFlow/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.AntonEfimenko.RxState;
@@ -431,7 +433,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
-				INFOPLIST_FILE = RxStateTests/Info.plist;
+				INFOPLIST_FILE = RxDataFlowTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.AntonEfimenko.RxStateTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -448,7 +450,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
-				INFOPLIST_FILE = RxStateTests/Info.plist;
+				INFOPLIST_FILE = RxDataFlowTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.AntonEfimenko.RxStateTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -459,7 +461,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		6E130F1C1DCA66A1006DC5ED /* Build configuration list for PBXProject "RxState" */ = {
+		6E130F1C1DCA66A1006DC5ED /* Build configuration list for PBXProject "RxDataFlow" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				6E130F341DCA66A2006DC5ED /* Debug */,
@@ -468,7 +470,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		6E130F361DCA66A2006DC5ED /* Build configuration list for PBXNativeTarget "RxState" */ = {
+		6E130F361DCA66A2006DC5ED /* Build configuration list for PBXNativeTarget "RxDataFlow" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				6E130F371DCA66A2006DC5ED /* Debug */,
@@ -477,7 +479,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		6E130F391DCA66A2006DC5ED /* Build configuration list for PBXNativeTarget "RxStateTests" */ = {
+		6E130F391DCA66A2006DC5ED /* Build configuration list for PBXNativeTarget "RxDataFlowTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				6E130F3A1DCA66A2006DC5ED /* Debug */,
