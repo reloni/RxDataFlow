@@ -12,7 +12,7 @@ import RxSwift
 public protocol RxStateType { }
 
 public protocol RxReducerType {
-    func handle<T: RxStateType>(_ action: RxActionType, flowController: RxDataFlowController<T>) -> Observable<RxStateType>
+    func handle(_ action: RxActionType, flowController: RxDataFlowControllerType) -> Observable<RxStateType>
 }
 
 public protocol RxActionType {

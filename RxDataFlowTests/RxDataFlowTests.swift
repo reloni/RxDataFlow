@@ -8,7 +8,7 @@
 
 import XCTest
 import RxSwift
-@testable import RxState
+@testable import RxDataFlow
 
 struct TestState : RxStateType {
 	let text: String
@@ -43,8 +43,7 @@ struct ErrorAction : RxActionType {
 }
 
 struct TestStoreReducer : RxReducerType {
-	typealias T = TestState
-	func handle<T : RxStateType>(_ action: RxActionType, flowController: RxDataFlowController<T>) -> Observable<RxStateType> {
+	func handle(_ action: RxActionType, flowController: RxDataFlowControllerType) -> Observable<RxStateType> {
 		switch action {
 		case let a as ChangeTextValueAction: return changeTextValue(newText: a.newText)
 		case _ as CompletionAction: return completion()

@@ -9,7 +9,13 @@
 import Foundation
 import RxSwift
 
-public final class RxDataFlowController<State: RxStateType> {
+public protocol RxDataFlowControllerType { }
+
+public final class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType {
+	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject.asObservable().observeOn(scheduler) }
+	public var stateValue: (setBy: RxActionType, state: State) { return stateStack.peek()! }
+	public var errors: Observable<(state: RxStateType, action: RxActionType, error: Error)> { return errorsSubject }
+	
 	let bag = DisposeBag()
 	let reducer: RxReducerType
 	let scheduler: ImmediateSchedulerType
@@ -51,13 +57,6 @@ public final class RxDataFlowController<State: RxStateType> {
                     }).catchErrorJustReturn(EmptyState())
 			}.subscribe().addDisposableTo(bag)
 	}
-}
-
-extension RxDataFlowController {
-	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject.asObservable().observeOn(scheduler) }
-	public var stateValue: (setBy: RxActionType, state: State) { return stateStack.peek()! }
-	public var errors: Observable<(state: RxStateType, action: RxActionType, error: Error)> { return errorsSubject }
-	
 	
 	public func dispatch(_ action: RxActionType) {
 		scheduler.schedule((action, self)) { params in
