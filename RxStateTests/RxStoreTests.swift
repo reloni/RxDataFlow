@@ -10,58 +10,28 @@ import XCTest
 import RxSwift
 @testable import RxState
 
-
 struct TestState : RxStateType {
 	let text: String
 }
 
-struct ChangeTextValueWithCustomDelayAction : RxActionType {
+struct ChangeTextValueAction : RxActionType {
 	let newText: String
-    var scheduler: ImmediateSchedulerType?
-//	let subscriptionDelay: RxTimeInterval
-//	let scheduler: SchedulerType?
-    /*
-	public var work: RxActionWork {
-		return RxActionWork { _ -> Observable<RxActionResultType> in
-			let result: Observable<RxActionResultType> = Observable.just(RxDefaultActionResult(self.newText))
-			guard let scheduler = self.scheduler else { return result }
-			return result.delaySubscription(self.subscriptionDelay, scheduler: scheduler)
-		}
-	}*/
+	var scheduler: ImmediateSchedulerType?
 }
 
-func changeTextValueWithCustomDelayDescriptor(newText: String) -> Observable<RxStateType> {
-    return .just(TestState(text: newText))
-    //let result: Observable<RxActionResultType> = Observable.just(RxDefaultActionResult(newText))
-    //return result
-    //guard let scheduler = self.scheduler else { return result }
-    //return result.delaySubscription(self.subscriptionDelay, scheduler: scheduler)
-}
-
-extension ChangeTextValueWithCustomDelayAction {
+extension ChangeTextValueAction {
 	init(newText: String) {
-		//self.init(newText: newText, subscriptionDelay: 0, scheduler: nil)
-        self.init(newText: newText, scheduler: nil)
+		self.init(newText: newText, scheduler: nil)
 	}
 }
 
 struct CustomDescriptorAction : RxActionType {
-    var scheduler: ImmediateSchedulerType?
-    let descriptor: Observable<RxStateType>
-	//let work: RxActionWork
+	var scheduler: ImmediateSchedulerType?
+	let descriptor: Observable<RxStateType>
 }
 
 struct CompletionAction : RxActionType {
-    var scheduler: ImmediateSchedulerType?
-//	public var work: RxActionWork {
-//		return RxActionWork { _ in
-//			Observable.just(RxDefaultActionResult(""))
-//		}
-//	}
-}
-
-func completionDescriptor() -> Observable<RxStateType> {
-    return .just(TestState(text: "Completed"))
+	var scheduler: ImmediateSchedulerType?
 }
 
 enum TestError : Error {
@@ -69,30 +39,32 @@ enum TestError : Error {
 }
 
 struct ErrorAction : RxActionType {
-    var scheduler: ImmediateSchedulerType?
-//	public var work: RxActionWork {
-//		return RxActionWork { _ in
-//			Observable.error(TestError.someError)
-//		}
-//	}
+	var scheduler: ImmediateSchedulerType?
 }
-func errorDescriptor() -> Observable<RxStateType> {
-    return .error(TestError.someError)
-}
-
 
 struct TestStoreReducer : RxReducerType {
-    typealias T = TestState
-    func handle<T : RxStateType>(_ action: RxActionType, flowController: RxDataFlowController<T>) -> Observable<RxStateType> {
-        switch action {
-        case let a as ChangeTextValueWithCustomDelayAction: return changeTextValueWithCustomDelayDescriptor(newText: a.newText)
-            //Observable.just(TestState(text: (actionResult as! RxDefaultActionResult).value))
-        case _ as CompletionAction: return completionDescriptor()//Observable.just(TestState(text: "Completed"))
-        case let a as CustomDescriptorAction: return a.descriptor //Observable.just(TestState(text: (actionResult as! RxDefaultActionResult).value))
-        case _ as ErrorAction: return errorDescriptor()
-        default: return Observable.empty()
-        }
-    }
+	typealias T = TestState
+	func handle<T : RxStateType>(_ action: RxActionType, flowController: RxDataFlowController<T>) -> Observable<RxStateType> {
+		switch action {
+		case let a as ChangeTextValueAction: return changeTextValue(newText: a.newText)
+		case _ as CompletionAction: return completion()
+		case let a as CustomDescriptorAction: return a.descriptor
+		case _ as ErrorAction: return error()
+		default: return Observable.empty()
+		}
+	}
+	
+	func changeTextValue(newText: String) -> Observable<RxStateType> {
+		return .just(TestState(text: newText))
+	}
+	
+	func error() -> Observable<RxStateType> {
+		return .error(TestError.someError)
+	}
+	
+	func completion() -> Observable<RxStateType> {
+		return .just(TestState(text: "Completed"))
+	}
 }
 
 class RxStateTests: XCTestCase {
@@ -135,18 +107,18 @@ class RxStateTests: XCTestCase {
 		let completeExpectation = expectation(description: "Should change state")
 		
 		_ = store.state.subscribe(onNext: { next in
-			guard next.setBy is ChangeTextValueWithCustomDelayAction else { return }
+			guard next.setBy is ChangeTextValueAction else { return }
 			XCTAssertEqual(next.state.text, "New text")
 			completeExpectation.fulfill()
 		})
 		
-		store.dispatch(ChangeTextValueWithCustomDelayAction(newText: "New text"))
+		store.dispatch(ChangeTextValueAction(newText: "New text"))
 		
 		waitForExpectations(timeout: 1, handler: nil)
 		
 		XCTAssertEqual(store.stateStack.count, 2)
 		XCTAssertEqual(store.stateStack.peek()?.state.text, "New text")
-		XCTAssertTrue(store.stateStack.peek()?.setBy is ChangeTextValueWithCustomDelayAction)
+		XCTAssertTrue(store.stateStack.peek()?.setBy is ChangeTextValueAction)
 	}
 	
 	func testTrimHistory() {
@@ -164,7 +136,7 @@ class RxStateTests: XCTestCase {
 		})
 		
 		for i in 0...counter {
-			store.dispatch(ChangeTextValueWithCustomDelayAction(newText: "New text \(i)"))
+			store.dispatch(ChangeTextValueAction(newText: "New text \(i)"))
 		}
 		
 		waitForExpectations(timeout: 1, handler: nil)
@@ -174,7 +146,7 @@ class RxStateTests: XCTestCase {
 		XCTAssertEqual(store.stateStack.first()?.state.text, "New text 1")
 	}
 	
-    
+	
 	func testPorformActionAndPropagateError() {
 		let store = RxDataFlowController(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
 		let errorExpectation = expectation(description: "Should rise error")
@@ -187,9 +159,9 @@ class RxStateTests: XCTestCase {
 				errorExpectation.fulfill()
 			}
 		})
-		store.dispatch(ChangeTextValueWithCustomDelayAction(newText: "New text 1"))
-		store.dispatch(ChangeTextValueWithCustomDelayAction(newText: "New text 2"))
-		store.dispatch(ChangeTextValueWithCustomDelayAction(newText: "New text before error"))
+		store.dispatch(ChangeTextValueAction(newText: "New text 1"))
+		store.dispatch(ChangeTextValueAction(newText: "New text 2"))
+		store.dispatch(ChangeTextValueAction(newText: "New text before error"))
 		store.dispatch(ErrorAction())
 		
 		waitForExpectations(timeout: 1, handler: nil)
@@ -200,7 +172,7 @@ class RxStateTests: XCTestCase {
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
 		var changeTextValueActionCount = 0
-		_ = store.state.filter { $0.setBy is ChangeTextValueWithCustomDelayAction }.subscribe(onNext: { next in
+		_ = store.state.filter { $0.setBy is ChangeTextValueAction }.subscribe(onNext: { next in
 			changeTextValueActionCount += 1
 		})
 		
@@ -208,12 +180,12 @@ class RxStateTests: XCTestCase {
 			completeExpectation.fulfill()
 		})
 		
-		store.dispatch(ChangeTextValueWithCustomDelayAction(newText: "New text 1"))
-		store.dispatch(ChangeTextValueWithCustomDelayAction(newText: "New text 2"))
-		store.dispatch(ChangeTextValueWithCustomDelayAction(newText: "New text 3"))
+		store.dispatch(ChangeTextValueAction(newText: "New text 1"))
+		store.dispatch(ChangeTextValueAction(newText: "New text 2"))
+		store.dispatch(ChangeTextValueAction(newText: "New text 3"))
 		store.dispatch(ErrorAction())
-		store.dispatch(ChangeTextValueWithCustomDelayAction(newText: "New text 4"))
-		store.dispatch(ChangeTextValueWithCustomDelayAction(newText: "Last text change"))
+		store.dispatch(ChangeTextValueAction(newText: "New text 4"))
+		store.dispatch(ChangeTextValueAction(newText: "Last text change"))
 		store.dispatch(CompletionAction())
 		
 		waitForExpectations(timeout: 1, handler: nil)
@@ -231,7 +203,7 @@ class RxStateTests: XCTestCase {
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
 	
-    /*
+	
 	func testSerialActionDispatch() {
 		let store = RxDataFlowController(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"), maxHistoryItems: 8)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
@@ -239,29 +211,27 @@ class RxStateTests: XCTestCase {
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
 			completeExpectation.fulfill()
 		})
-	
+		
 		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
 		
 		for i in 1...11 {
-			let after = (i % 2 == 0) ? 0.05 : 0
+			let after = (i % 2 == 0) ? 0.15 : 0
 			let action: RxActionType = {
 				if i == 11 {
 					return CompletionAction()
 				} else if i % 3 == 0 {
-					let actionWork = RxActionWork {_ in
-						return Observable.error(TestError.someError).delaySubscription(after, scheduler: delayScheduler)
-					}
-					
-					return RxDefaultAction(work: actionWork)
+					let descriptor = Observable<RxStateType>.error(TestError.someError).delaySubscription(after, scheduler: delayScheduler)
+					return CustomDescriptorAction(scheduler: delayScheduler, descriptor: descriptor)
 				} else {
-					return ChangeTextValueWithCustomDelayAction(newText: "Action \(i) executed", subscriptionDelay: after, scheduler: delayScheduler)
+					let descriptor = Observable<RxStateType>.just(TestState(text: "Action \(i) executed")).delaySubscription(after, scheduler: delayScheduler)
+					return CustomDescriptorAction(scheduler: delayScheduler, descriptor: descriptor)
 				}
 			}()
 			
 			store.dispatch(action)
 		}
 		
-		waitForExpectations(timeout: 3, handler: nil)
+		waitForExpectations(timeout: 5, handler: nil)
 		
 		let expectedStateHistoryTextValues = ["Action 1 executed",
 		                                      "Action 2 executed",
@@ -276,16 +246,16 @@ class RxStateTests: XCTestCase {
 	}
 	
 	func testDispatch_1() {
-		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
+		let store = RxDataFlowController(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
 			completeExpectation.fulfill()
 		})
 		
-		store.dispatch(ChangeTextValueWithCustomDelayAction(newText: "New text 1"))
-		DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.01) { store.dispatch(ChangeTextValueWithCustomDelayAction(newText: "New text 2")) }
-		DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.1) { store.dispatch(ChangeTextValueWithCustomDelayAction(newText: "New text 3")) }
+		store.dispatch(ChangeTextValueAction(newText: "New text 1"))
+		DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.01) { store.dispatch(ChangeTextValueAction(newText: "New text 2")) }
+		DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.1) { store.dispatch(ChangeTextValueAction(newText: "New text 3")) }
 		DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.30) { store.dispatch(CompletionAction()) }
 		
 		waitForExpectations(timeout: 1, handler: nil)
@@ -301,7 +271,7 @@ class RxStateTests: XCTestCase {
 	}
 	
 	func testDispatchInCorrectScheduler_1() {
-		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"), maxHistoryItems: 8)
+		let store = RxDataFlowController(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"), maxHistoryItems: 8)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
@@ -309,14 +279,16 @@ class RxStateTests: XCTestCase {
 		})
 		
 		let action1Scheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
-		let action1Work = RxActionWork(scheduler: action1Scheduler) { _ in
+		
+		let descriptor: Observable<RxStateType> = {
 			return Observable.create { observer in
-				observer.onNext(RxDefaultActionResult("Action 1 executed"))
+				XCTAssertTrue(!Thread.isMainThread)
+				observer.onNext(TestState(text: "Action 1 executed"))
 				observer.onCompleted()
 				return Disposables.create()
 			}
-		}
-		let action1 = ChangeTextValueAction(work: action1Work)
+		}()
+		let action1 = CustomDescriptorAction(scheduler: action1Scheduler, descriptor: descriptor)
 		store.dispatch(action1)
 		store.dispatch(CompletionAction())
 		
@@ -331,7 +303,7 @@ class RxStateTests: XCTestCase {
 	}
 	
 	func testDispatchInCorrectScheduler_2() {
-		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"), maxHistoryItems: 8)
+		let store = RxDataFlowController(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"), maxHistoryItems: 8)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
@@ -340,32 +312,9 @@ class RxStateTests: XCTestCase {
 		
 		let actionScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		
-		let action1Work = RxActionWork(scheduler: actionScheduler) { _ in
-			return Observable.create { observer in
-				observer.onNext(RxDefaultActionResult("Action 1 executed"))
-				observer.onCompleted()
-				return Disposables.create()
-			}
-		}
-		let action1 = ChangeTextValueAction(work: action1Work)
-		
-		let action2Work = RxActionWork(scheduler: actionScheduler) { _ in
-			return Observable.create { observer in
-				observer.onNext(RxDefaultActionResult("Action 2 executed"))
-				observer.onCompleted()
-				return Disposables.create()
-			}
-		}
-		let action2 = ChangeTextValueAction(work: action2Work)
-		
-		let action3Work = RxActionWork(scheduler: actionScheduler) { _ in
-			return Observable.create { observer in
-				observer.onNext(RxDefaultActionResult("Action 3 executed"))
-				observer.onCompleted()
-				return Disposables.create()
-			}
-		}
-		let action3 = ChangeTextValueAction(work: action3Work)
+		let action1 = CustomDescriptorAction(scheduler: actionScheduler, descriptor: .just(TestState(text: "Action 1 executed")))
+		let action2 = CustomDescriptorAction(scheduler: actionScheduler, descriptor: .just(TestState(text: "Action 2 executed")))
+		let action3 = CustomDescriptorAction(scheduler: actionScheduler, descriptor: .just(TestState(text: "Action 3 executed")))
 		
 		store.dispatch(action1)
 		store.dispatch(action2)
@@ -386,40 +335,18 @@ class RxStateTests: XCTestCase {
 	
 	func testDispatchInDefaultScheduler() {
 		let storeScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
-		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"), maxHistoryItems: 8, scheduler: storeScheduler)
+		let store = RxDataFlowController(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"), maxHistoryItems: 8, scheduler: storeScheduler)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
 			completeExpectation.fulfill()
 		})
 		
-		let action1Work = RxActionWork { _ in
-			return Observable.create { observer in
-				observer.onNext(RxDefaultActionResult("Action 1 executed"))
-				observer.onCompleted()
-				return Disposables.create()
-			}
-		}
-		let action1 = ChangeTextValueAction(work: action1Work)
-		
-		let action2Work = RxActionWork { _ in
-			return Observable.create { observer in
-				observer.onNext(RxDefaultActionResult("Action 2 executed"))
-				observer.onCompleted()
-				return Disposables.create()
-			}
-		}
-		let action2 = ChangeTextValueAction(work: action2Work)
+		let action1 = CustomDescriptorAction(scheduler: nil, descriptor: .just(TestState(text: "Action 1 executed")))
+		let action2 = CustomDescriptorAction(scheduler: nil, descriptor: .just(TestState(text: "Action 2 executed")))
 		
 		let action3Scheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
-		let action3Work = RxActionWork(scheduler: action3Scheduler) { _ in
-			return Observable.create { observer in
-				observer.onNext(RxDefaultActionResult("Action 3 executed"))
-				observer.onCompleted()
-				return Disposables.create()
-			}
-		}
-		let action3 = ChangeTextValueAction(work: action3Work)
+		let action3 = CustomDescriptorAction(scheduler: action3Scheduler, descriptor: .just(TestState(text: "Action 3 executed")))
 		
 		store.dispatch(action1)
 		store.dispatch(action2)
@@ -441,18 +368,22 @@ class RxStateTests: XCTestCase {
 	
 	func testDispatchInMainScheduer() {
 		let storeScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
-		let store = RxStore(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"), maxHistoryItems: 8, scheduler: storeScheduler)
+		let store = RxDataFlowController(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"), maxHistoryItems: 8, scheduler: storeScheduler)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
 			completeExpectation.fulfill()
 		})
 		
-		let action1Work = RxActionWork(scheduler: MainScheduler.instance) { _ -> RxActionResultType in
+		let descriptor: Observable<RxStateType> = {
+			return Observable.create { observer in
 				XCTAssertTrue(Thread.isMainThread)
-				return RxDefaultActionResult("Action 1 executed")
-		}
-		let action1 = ChangeTextValueAction(work: action1Work)
+				observer.onNext(TestState(text: "Action 1 executed"))
+				observer.onCompleted()
+				return Disposables.create()
+			}
+		}()
+		let action1 = CustomDescriptorAction(scheduler: MainScheduler.instance, descriptor: descriptor)
 		
 		store.dispatch(action1)
 		store.dispatch(CompletionAction())
@@ -466,6 +397,4 @@ class RxStateTests: XCTestCase {
 		XCTAssertEqual(1, storeScheduler.scheduleCounter)
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
-    
-    */
 }
