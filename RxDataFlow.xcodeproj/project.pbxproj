@@ -15,9 +15,7 @@
 		6E2473131DCA6A1800408217 /* RxDataFlowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E2473121DCA6A1800408217 /* RxDataFlowController.swift */; };
 		6E2473161DCA6AB800408217 /* RxSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E2473151DCA6AB800408217 /* RxSwift.framework */; };
 		6E3E18011DCE28D20087604D /* RxSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E2473151DCA6AB800408217 /* RxSwift.framework */; };
-		6E97D66E1E5EDA4A00EC8305 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 6E97D66D1E5EDA4A00EC8305 /* Info.plist */; };
 		6ED004B81E0C4AAE00CA6E7C /* Queue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ED004B71E0C4AAE00CA6E7C /* Queue.swift */; };
-		6EE39C4C1E5ED9520045A6E8 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 6EE39C4B1E5ED9520045A6E8 /* Info.plist */; };
 		6EE91CAA1E1934590025A4BD /* TestScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EE91CA91E1934590025A4BD /* TestScheduler.swift */; };
 /* End PBXBuildFile section */
 
@@ -174,7 +172,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0810;
-				LastUpgradeCheck = 0810;
+				LastUpgradeCheck = 0820;
 				ORGANIZATIONNAME = "Anton Efimenko";
 				TargetAttributes = {
 					6E130F211DCA66A1006DC5ED = {
@@ -213,8 +211,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6E97D66E1E5EDA4A00EC8305 /* Info.plist in Resources */,
-				6EE39C4C1E5ED9520045A6E8 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -296,6 +292,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -349,6 +346,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
