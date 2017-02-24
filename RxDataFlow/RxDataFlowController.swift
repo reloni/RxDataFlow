@@ -37,24 +37,31 @@ public final class RxDataFlowController<State: RxStateType> : RxDataFlowControll
 		stateStack.push((setBy: RxInitialStateAction() as RxActionType, state: initialState))
 		
 		currentStateSubject = BehaviorSubject(value: (setBy: RxInitialStateAction() as RxActionType, state: initialState))
+		
+		subscribe()
+	}
+	
+	private func subscribe() {
 		currentStateSubject.skip(1).subscribe(onNext: { [weak self] newState in self?.stateStack.push(newState) }).addDisposableTo(bag)
 		
 		actionsQueue.currentItemSubject.observeOn(scheduler)
-			.flatMap { [weak self] action -> Observable<RxStateType> in
+			.flatMap { [weak self] action -> Observable<RxStateType?> in
 				guard let object = self else { return Observable.empty() }
-                
-                return object.reducer.handle(action, flowController: object).subscribeOn(action.scheduler ?? scheduler)
-                    .observeOn(object.scheduler)
-                    .do(
-                        onNext: { next in
-                            object.currentStateSubject.onNext((setBy: action, state: next as! State))
-                    },
-                        onError: { error in
-                            object.errorsSubject.onNext((state: object.stateValue.state, action: action, error: error))
-                    },
-                        onDispose: { _ in
-                            _ = object.actionsQueue.dequeue()
-                    }).catchErrorJustReturn(EmptyState())
+				
+				return object.reducer.handle(action, flowController: object).subscribeOn(action.scheduler ?? object.scheduler)
+					.observeOn(object.scheduler)
+					.do(
+						onNext: { next in
+							object.currentStateSubject.onNext((setBy: action, state: next as! State))
+					},
+						onError: { error in
+							object.errorsSubject.onNext((state: object.stateValue.state, action: action, error: error))
+					},
+						onDispose: { _ in
+							_ = object.actionsQueue.dequeue()
+					})
+					.flatMap { result -> Observable<RxStateType?> in .just(result) }
+					.catchErrorJustReturn(nil)
 			}.subscribe().addDisposableTo(bag)
 	}
 	

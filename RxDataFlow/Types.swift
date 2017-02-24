@@ -19,8 +19,6 @@ public protocol RxActionType {
     var scheduler: ImmediateSchedulerType? { get }
 }
 
-struct EmptyState : RxStateType { }
-
 public struct RxDefaultAction : RxActionType {
     public var scheduler: ImmediateSchedulerType?
 }
