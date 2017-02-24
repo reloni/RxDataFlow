@@ -30,6 +30,18 @@ struct CustomDescriptorAction : RxActionType {
 	let descriptor: Observable<RxStateType>
 }
 
+enum EnumAction : RxActionType {
+	case inMainScheduler(Observable<RxStateType>)
+	case inCustomScheduler(ImmediateSchedulerType, Observable<RxStateType>)
+	
+	var scheduler: ImmediateSchedulerType? {
+		switch self {
+		case .inMainScheduler: return MainScheduler.instance
+		case .inCustomScheduler(let scheduler, _): return scheduler
+		}
+	}
+}
+
 struct CompletionAction : RxActionType {
 	var scheduler: ImmediateSchedulerType?
 }
@@ -49,6 +61,15 @@ struct TestStoreReducer : RxReducerType {
 		case _ as CompletionAction: return completion()
 		case let a as CustomDescriptorAction: return a.descriptor
 		case _ as ErrorAction: return error()
+		case let enumAction as EnumAction:
+			switch enumAction {
+			case .inMainScheduler(let descriptor):
+				XCTAssertTrue(Thread.isMainThread)
+				return descriptor
+			case .inCustomScheduler(_, let descriptor):
+				XCTAssertFalse(Thread.isMainThread)
+				return descriptor
+			}
 		default: return Observable.empty()
 		}
 	}
@@ -433,6 +454,36 @@ class RxStateTests: XCTestCase {
 		                                      "Action executed (4)",
 		                                      "Completed"]
 		
+		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
+	}
+	
+	func testDispatchReducerHandleFunctionInCorrectScheduler() {
+		let store = RxDataFlowController(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"), maxHistoryItems: 8)
+		let completeExpectation = expectation(description: "Should perform all non-error actions")
+		
+		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
+			completeExpectation.fulfill()
+		})
+		
+		
+		
+		let action1 = EnumAction.inMainScheduler(.just(TestState(text: "Action 1 executed")))
+		
+		let action2Scheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
+		let action2 = EnumAction.inCustomScheduler(action2Scheduler, .just(TestState(text: "Action 2 executed")))
+		
+		store.dispatch(action1)
+		store.dispatch(action2)
+		store.dispatch(CompletionAction())
+		
+		waitForExpectations(timeout: 1, handler: nil)
+		
+		let expectedStateHistoryTextValues = ["Initial value",
+		                                      "Action 1 executed",
+		                                      "Action 2 executed",
+		                                      "Completed"]
+		
+		XCTAssertEqual(1, action2Scheduler.scheduleCounter)
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
 }

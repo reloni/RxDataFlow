@@ -48,7 +48,12 @@ public final class RxDataFlowController<State: RxStateType> : RxDataFlowControll
 			.flatMap { [weak self] action -> Observable<RxStateType?> in
 				guard let object = self else { return Observable.empty() }
 				
-				return object.reducer.handle(action, flowController: object).subscribeOn(action.scheduler ?? object.scheduler)
+				let handle = Observable<RxStateType>.create { observer in
+					let disposable = object.reducer.handle(action, flowController: object).subscribe(observer)
+					return Disposables.create { disposable.dispose() }
+				}
+				
+				return handle.subscribeOn(action.scheduler ?? object.scheduler)
 					.observeOn(object.scheduler)
 					.do(
 						onNext: { next in
