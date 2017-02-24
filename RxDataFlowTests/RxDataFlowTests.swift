@@ -80,8 +80,8 @@ class RxStateTests: XCTestCase {
 	
 	func testInitialState() {
 		let store = RxDataFlowController(reducer: TestStoreReducer(), initialState: TestState(text: "Initial value"))
-		XCTAssertEqual(store.stateValue.state.text, "Initial value")
-		XCTAssertNotNil(store.stateValue.setBy as? RxInitialStateAction)
+		XCTAssertEqual(store.currentState.state.text, "Initial value")
+		XCTAssertNotNil(store.currentState.setBy as? RxInitialStateAction)
 		
 		XCTAssertEqual(store.stateStack.count, 1)
 		XCTAssertEqual(store.stateStack.peek()?.state.text, "Initial value")
@@ -190,7 +190,7 @@ class RxStateTests: XCTestCase {
 		waitForExpectations(timeout: 1, handler: nil)
 		
 		XCTAssertEqual(5, changeTextValueActionCount, "Should change text five times")
-		XCTAssertEqual("Completed", store.stateValue.state.text)
+		XCTAssertEqual("Completed", store.currentState.state.text)
 		let expectedStateHistoryTextValues = ["Initial value",
 		                                      "New text 1",
 		                                      "New text 2",
@@ -259,7 +259,7 @@ class RxStateTests: XCTestCase {
 		
 		waitForExpectations(timeout: 1, handler: nil)
 		
-		XCTAssertEqual("Completed", store.stateValue.state.text)
+		XCTAssertEqual("Completed", store.currentState.state.text)
 		let expectedStateHistoryTextValues = ["Initial value",
 		                                      "New text 1",
 		                                      "New text 2",

@@ -13,7 +13,7 @@ public protocol RxDataFlowControllerType { }
 
 public final class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType {
 	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject.asObservable().observeOn(scheduler) }
-	public var stateValue: (setBy: RxActionType, state: State) { return stateStack.peek()! }
+	public var currentState: (setBy: RxActionType, state: State) { return stateStack.peek()! }
 	public var errors: Observable<(state: RxStateType, action: RxActionType, error: Error)> { return errorsSubject }
 	
 	let bag = DisposeBag()
@@ -55,7 +55,7 @@ public final class RxDataFlowController<State: RxStateType> : RxDataFlowControll
 							object.currentStateSubject.onNext((setBy: action, state: next as! State))
 					},
 						onError: { error in
-							object.errorsSubject.onNext((state: object.stateValue.state, action: action, error: error))
+							object.errorsSubject.onNext((state: object.currentState.state, action: action, error: error))
 					},
 						onDispose: { _ in
 							_ = object.actionsQueue.dequeue()
