@@ -174,7 +174,7 @@ class RxStateTests: XCTestCase {
 		_ = store.errors.subscribe(onNext: { e in
 			XCTAssertEqual(TestError.someError, e.error as! TestError)
 			XCTAssertTrue(e.action is ErrorAction)
-			XCTAssertEqual("New text before error", (e.state as? TestState)?.text)
+			XCTAssertEqual("New text before error", e.state.text)
 			if case TestError.someError = e.error {
 				errorExpectation.fulfill()
 			}

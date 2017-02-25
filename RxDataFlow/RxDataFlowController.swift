@@ -9,12 +9,14 @@
 import Foundation
 import RxSwift
 
-public protocol RxDataFlowControllerType { }
+public protocol RxDataFlowControllerType {
+	func dispatch(_ action: RxActionType)
+}
 
 public final class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType {
 	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject.asObservable().observeOn(scheduler) }
 	public var currentState: (setBy: RxActionType, state: State) { return stateStack.peek()! }
-	public var errors: Observable<(state: RxStateType, action: RxActionType, error: Error)> { return errorsSubject }
+	public var errors: Observable<(state: State, action: RxActionType, error: Error)> { return errorsSubject }
 	
 	let bag = DisposeBag()
 	let reducer: RxReducerType
@@ -25,7 +27,7 @@ public final class RxDataFlowController<State: RxStateType> : RxDataFlowControll
 	var isActionExecuting = BehaviorSubject(value: false)
 	
 	let currentStateSubject: BehaviorSubject<(setBy: RxActionType, state: State)>
-	let errorsSubject = PublishSubject<(state: RxStateType, action: RxActionType, error: Error)>()
+	let errorsSubject = PublishSubject<(state: State, action: RxActionType, error: Error)>()
 	
 	public init(reducer: RxReducerType,
 	            initialState: State,
