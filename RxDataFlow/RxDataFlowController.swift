@@ -13,6 +13,16 @@ public protocol RxDataFlowControllerType {
 	func dispatch(_ action: RxActionType)
 }
 
+public protocol RxStateType { }
+
+public protocol RxReducerType {
+	func handle(_ action: RxActionType, flowController: RxDataFlowControllerType) -> Observable<RxStateType>
+}
+
+public protocol RxActionType {
+	var scheduler: ImmediateSchedulerType? { get }
+}
+
 public final class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType {
 	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject.asObservable().observeOn(scheduler) }
 	public var currentState: (setBy: RxActionType, state: State) { return stateStack.peek()! }
@@ -30,15 +40,16 @@ public final class RxDataFlowController<State: RxStateType> : RxDataFlowControll
 	let errorsSubject = PublishSubject<(state: State, action: RxActionType, error: Error)>()
 	
 	public init(reducer: RxReducerType,
+	            initialAction: RxActionType,
 	            initialState: State,
 	            maxHistoryItems: UInt = 50,
 	            scheduler: ImmediateSchedulerType = SerialDispatchQueueScheduler(qos: .utility, internalSerialQueueName: "RxStore.DispatchQueue")) {
 		self.scheduler = scheduler
 		self.reducer = reducer
 		stateStack = FixedStack(capacity: maxHistoryItems)
-		stateStack.push((setBy: RxInitialStateAction() as RxActionType, state: initialState))
+		stateStack.push((setBy: initialAction, state: initialState))
 		
-		currentStateSubject = BehaviorSubject(value: (setBy: RxInitialStateAction() as RxActionType, state: initialState))
+		currentStateSubject = BehaviorSubject(value: (setBy: initialAction, state: initialState))
 		
 		subscribe()
 	}
