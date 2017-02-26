@@ -19,6 +19,11 @@ struct ChangeTextValueAction : RxActionType {
 	var scheduler: ImmediateSchedulerType?
 }
 
+struct CompositeAction : RxCompositeActionType {
+	var scheduler: ImmediateSchedulerType?
+	var actions: [RxActionType]
+}
+
 extension ChangeTextValueAction {
 	init(newText: String) {
 		self.init(newText: newText, scheduler: nil)
@@ -463,7 +468,7 @@ class RxStateTests: XCTestCase {
 				observer.onNext(TestState(text: "Action executed (1)"))
 				observer.onNext(TestState(text: "Action executed (2)"))
 				
-				DispatchQueue.global(qos: .background).asyncAfter(deadline: DispatchTime.now() + 0.5) {
+				DispatchQueue.global(qos: .background).asyncAfter(deadline: DispatchTime.now() + 1.5) {
 					observer.onNext(TestState(text: "Action executed (3)"))
 					observer.onNext(TestState(text: "Action executed (4)"))
 					observer.onCompleted()
@@ -477,7 +482,7 @@ class RxStateTests: XCTestCase {
 		store.dispatch(action1)
 		store.dispatch(CompletionAction())
 		
-		waitForExpectations(timeout: 2, handler: nil)
+		waitForExpectations(timeout: 4, handler: nil)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
 		                                      "Action executed (1)",
@@ -498,8 +503,6 @@ class RxStateTests: XCTestCase {
 			completeExpectation.fulfill()
 		})
 		
-		
-		
 		let action1 = EnumAction.inMainScheduler(.just(TestState(text: "Action 1 executed")))
 		
 		let action2Scheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
@@ -517,6 +520,106 @@ class RxStateTests: XCTestCase {
 		                                      "Completed"]
 		
 		XCTAssertEqual(1, action2Scheduler.scheduleCounter)
+		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
+	}
+	
+	func testCompositeAction() {
+		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		                                 initialState: TestState(text: "Initial value"))
+		
+		let completeExpectation = expectation(description: "Should perform all non-error actions")
+		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
+			completeExpectation.fulfill()
+		})
+		
+		let action = CompositeAction(scheduler: nil, actions: [ChangeTextValueAction(newText: "Action 1 executed"),
+		                                                       ChangeTextValueAction(newText: "Action 2 executed"),
+		                                                       ChangeTextValueAction(newText: "Action 3 executed"),
+		                                                       ChangeTextValueAction(newText: "Action 4 executed")])
+		store.dispatch(action)
+		store.dispatch(CompletionAction())
+		
+		waitForExpectations(timeout: 1, handler: nil)
+		
+		let expectedStateHistoryTextValues = ["Initial value",
+		                                      "Action 1 executed",
+		                                      "Action 2 executed",
+		                                      "Action 3 executed",
+		                                      "Action 4 executed",
+		                                      "Completed"]
+		
+		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
+	}
+	
+	func testCompositeActionStopIfErrorOccurred() {
+		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		                                 initialState: TestState(text: "Initial value"))
+		
+		let completeExpectation = expectation(description: "Should perform all non-error actions")
+		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
+			completeExpectation.fulfill()
+		})
+		
+		let action = CompositeAction(scheduler: nil, actions: [ChangeTextValueAction(newText: "Action 1 executed"),
+		                                                       ChangeTextValueAction(newText: "Action 2 executed"),
+		                                                       ErrorAction(),
+		                                                       ChangeTextValueAction(newText: "Action 3 executed"),
+		                                                       ChangeTextValueAction(newText: "Action 4 executed")])
+		store.dispatch(action)
+		store.dispatch(CompletionAction())
+		
+		waitForExpectations(timeout: 1, handler: nil)
+		
+		let expectedStateHistoryTextValues = ["Initial value",
+		                                      "Action 1 executed",
+		                                      "Action 2 executed",
+		                                      "Completed"]
+		
+		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
+	}
+	
+	func testMultipleCompositeActions() {
+		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		                                 initialState: TestState(text: "Initial value"))
+		
+		let completeExpectation = expectation(description: "Should perform all non-error actions")
+		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
+			completeExpectation.fulfill()
+		})
+		
+		let action1 = CompositeAction(scheduler: nil, actions: [ChangeTextValueAction(newText: "Action 1 executed"),
+		                                                       ChangeTextValueAction(newText: "Action 2 executed"),
+		                                                       ChangeTextValueAction(newText: "Action 3 executed"),
+		                                                       ChangeTextValueAction(newText: "Action 4 executed")])
+		let action2 = CompositeAction(scheduler: nil, actions: [ChangeTextValueAction(newText: "Action 5 executed"),
+		                                                        ChangeTextValueAction(newText: "Action 6 executed"),
+		                                                        ErrorAction(),
+		                                                        ChangeTextValueAction(newText: "Action 7 executed"),
+		                                                        ChangeTextValueAction(newText: "Action 8 executed")])
+		let action3 = CompositeAction(scheduler: nil, actions: [ChangeTextValueAction(newText: "Action 9 executed"),
+		                                                        ChangeTextValueAction(newText: "Action 10 executed"),
+		                                                        ChangeTextValueAction(newText: "Action 11 executed"),
+		                                                        ChangeTextValueAction(newText: "Action 12 executed")])
+		store.dispatch(action1)
+		store.dispatch(action2)
+		store.dispatch(action3)
+		store.dispatch(CompletionAction())
+		
+		waitForExpectations(timeout: 1, handler: nil)
+		
+		let expectedStateHistoryTextValues = ["Initial value",
+		                                      "Action 1 executed",
+		                                      "Action 2 executed",
+		                                      "Action 3 executed",
+		                                      "Action 4 executed",
+		                                      "Action 5 executed",
+		                                      "Action 6 executed",
+		                                      "Action 9 executed",
+		                                      "Action 10 executed",
+		                                      "Action 11 executed",
+		                                      "Action 12 executed",
+		                                      "Completed"]
+		
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
 }

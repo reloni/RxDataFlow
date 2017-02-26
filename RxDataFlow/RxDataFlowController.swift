@@ -23,9 +23,14 @@ public protocol RxActionType {
 	var scheduler: ImmediateSchedulerType? { get }
 }
 
+public protocol RxCompositeActionType : RxActionType {
+	var actions: [RxActionType] { get }
+}
+
 public struct RxInitializationAction : RxActionType {
 	public var scheduler: ImmediateSchedulerType?
 }
+
 
 public final class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType {
 	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject.asObservable().observeOn(scheduler) }
@@ -70,7 +75,17 @@ public final class RxDataFlowController<State: RxStateType> : RxDataFlowControll
 				guard let object = self else { return Observable.empty() }
 				
 				let handle = Observable<RxStateType>.create { observer in
-					let disposable = object.reducer.handle(action, flowController: object).subscribe(observer)
+					let actions: Observable<RxActionType> = {
+						guard let compositeAction = action as? RxCompositeActionType else {
+							return Observable.from([action])
+						}
+						return Observable.from(compositeAction.actions)
+					}()
+					
+					let disposable = actions.flatMap { a -> Observable<RxStateType> in
+						return object.reducer.handle(a, flowController: object)
+					}.subscribe(observer)
+
 					return Disposables.create { disposable.dispose() }
 				}
 				
