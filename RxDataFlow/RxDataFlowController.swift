@@ -74,7 +74,36 @@ public final class RxDataFlowController<State: RxStateType> : RxDataFlowControll
 			.flatMap { [weak self] action -> Observable<RxStateType?> in
 				guard let object = self else { return Observable.empty() }
 				
-				let handle = Observable<RxStateType>.create { observer in
+//				let handle = Observable<RxStateType>.create { observer in
+//					let actions: Observable<RxActionType> = {
+//						guard let compositeAction = action as? RxCompositeActionType else {
+//							return Observable.from([action])
+//						}
+//						return Observable.from(compositeAction.actions)
+//					}()
+//					
+//					let disposable = actions.flatMap { a -> Observable<RxStateType> in
+//						//return Observable.of(object.reducer.handle(a, flowController: object)).subscribeOn(a.scheduler ?? object.scheduler).observeOn(a.scheduler ?? object.scheduler)
+//						return object.reducer.handle(a, flowController: object)//.subscribeOn(a.scheduler ?? object.scheduler).observeOn(a.scheduler ?? object.scheduler)
+//					}.subscribe(observer)
+//
+//					return Disposables.create { disposable.dispose() }
+//				}
+
+//				let handle: Observable<RxStateType> = {
+//					let actions: Observable<RxActionType> = {
+//						guard let compositeAction = action as? RxCompositeActionType else {
+//							return Observable.from([action])
+//						}
+//						return Observable.from(compositeAction.actions)
+//					}()
+//					
+//					return actions.flatMap { a -> Observable<RxStateType> in
+//						return object.reducer.handle(a, flowController: object).subscribeOn(a.scheduler ?? object.scheduler).observeOn(a.scheduler ?? object.scheduler)
+//					}
+//				}()
+
+				let handle: Observable<(Observable<RxStateType>, ImmediateSchedulerType)> = {
 					let actions: Observable<RxActionType> = {
 						guard let compositeAction = action as? RxCompositeActionType else {
 							return Observable.from([action])
@@ -82,15 +111,16 @@ public final class RxDataFlowController<State: RxStateType> : RxDataFlowControll
 						return Observable.from(compositeAction.actions)
 					}()
 					
-					let disposable = actions.flatMap { a -> Observable<RxStateType> in
-						return object.reducer.handle(a, flowController: object)
-					}.subscribe(observer)
-
-					return Disposables.create { disposable.dispose() }
-				}
+					return actions.flatMap { a -> Observable<(Observable<RxStateType>, ImmediateSchedulerType)> in
+						//return object.reducer.handle(a, flowController: object).subscribeOn(a.scheduler ?? object.scheduler).observeOn(a.scheduler ?? object.scheduler)
+						print("scheduler: \(a.scheduler)")
+						return .just((object.reducer.handle(a, flowController: object), a.scheduler ?? object.scheduler))
+					}
+				}()
 				
-				return handle.subscribeOn(action.scheduler ?? object.scheduler)
-					.observeOn(object.scheduler)
+				return handle.flatMap {
+					$0.0.subscribeOn($0.1).observeOn($0.1)
+				}//.subscribeOn(action.scheduler ?? object.scheduler).observeOn(object.scheduler)
 					.do(
 						onNext: { next in
 							object.currentStateSubject.onNext((setBy: action, state: next as! State))
@@ -112,7 +142,6 @@ public final class RxDataFlowController<State: RxStateType> : RxDataFlowControll
 				params.1.actionsQueue.enqueue(params.0)
 				return Disposables.create()
 				}.subscribe()
-			
 			}.addDisposableTo(bag)
 	}
 }
