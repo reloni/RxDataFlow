@@ -503,7 +503,16 @@ class RxStateTests: XCTestCase {
 			completeExpectation.fulfill()
 		})
 		
-		let action1 = EnumAction.inMainScheduler(.just(TestState(text: "Action 1 executed")))
+		let action1Descriptor: Observable<RxStateType> = {
+			return Observable.create { observer in
+				XCTAssertTrue(Thread.isMainThread)
+				observer.onNext(TestState(text: "Action 1 executed"))
+				observer.onCompleted()
+				return Disposables.create()
+			}
+		}()
+		
+		let action1 = EnumAction.inMainScheduler(action1Descriptor)
 		
 		let action2Scheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let action2 = EnumAction.inCustomScheduler(action2Scheduler, .just(TestState(text: "Action 2 executed")))

@@ -124,10 +124,12 @@ class CompositeActions: XCTestCase {
 		let topScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let scheduler1 = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let scheduler2 = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
+		let scheduler3 = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let action = CompositeAction(scheduler: topScheduler, actions: [ChangeTextValueAction(newText: "Action 1 executed", scheduler: scheduler1),
 		                                                       ChangeTextValueAction(newText: "Action 2 executed", scheduler: scheduler2),
-		                                                       ChangeTextValueAction(newText: "Action 3 executed"),
-		                                                       ChangeTextValueAction(newText: "Action 4 executed")])
+		                                                       EnumAction.inCustomScheduler(scheduler3, .just((TestState(text: "Action 3 executed")))),
+		                                                       ChangeTextValueAction(newText: "Action 4 executed"),
+		                                                       EnumAction.inMainScheduler(.just((TestState(text: "Action 5 executed"))))])
 		store.dispatch(action)
 		store.dispatch(CompletionAction())
 		
@@ -138,14 +140,16 @@ class CompositeActions: XCTestCase {
 		                                      "Action 2 executed",
 		                                      "Action 3 executed",
 		                                      "Action 4 executed",
+		                                      "Action 5 executed",
 		                                      "Completed"]
 		
 		// nothing should be invoked in top level scheduler, specified by CompositeAction,
 		// because FlowController will use schedulers specified in child tasks
 		XCTAssertEqual(0, topScheduler.scheduleCounter)
 		XCTAssertEqual(1, scheduler1.scheduleCounter)
-		XCTAssertEqual(1, scheduler1.scheduleCounter)
-		XCTAssertEqual(3, (store.scheduler as! TestScheduler).scheduleCounter)
+		XCTAssertEqual(1, scheduler2.scheduleCounter)
+		XCTAssertEqual(1, scheduler3.scheduleCounter)
+		XCTAssertEqual(2, (store.scheduler as! TestScheduler).scheduleCounter)
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
 }
