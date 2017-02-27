@@ -80,7 +80,9 @@ public final class RxDataFlowController<State: RxStateType> : RxDataFlowControll
 							return Observable.from([action], scheduler: action.scheduler ?? object.scheduler)
 						}
 						
-						return Observable.from(compositeAction.actions.map { Observable.from([$0], scheduler: $0.scheduler ?? object.scheduler) }).flatMap { $0 }
+						return Observable.from(compositeAction.actions.map { Observable.from([$0], scheduler: $0.scheduler ?? object.scheduler) })
+							.subscribeOn(object.scheduler)
+							.flatMap { $0 }
 					}()
 					
 					return actions.flatMap { a -> Observable<RxStateType> in

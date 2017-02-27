@@ -152,4 +152,60 @@ class CompositeActions: XCTestCase {
 		XCTAssertEqual(2, (store.scheduler as! TestScheduler).scheduleCounter)
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
+	
+	func testInvokeChildActionsInCorrectOrder() {
+		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		                                 initialState: TestState(text: "Initial value"),
+		                                 scheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)))
+		
+		let completeExpectation = expectation(description: "Should perform all non-error actions")
+		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
+			completeExpectation.fulfill()
+		})
+		
+		
+		let descriptor1: Observable<RxStateType> = {
+			return Observable.create { observer in
+				
+				DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 1.0) {
+					observer.onNext(TestState(text: "Action 2 executed"))
+					observer.onCompleted()
+				}
+				return Disposables.create()
+			}
+		}()
+		
+		let descriptor2: Observable<RxStateType> = {
+			return Observable.create { observer in
+				
+				DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.2) {
+					observer.onNext(TestState(text: "Action 6 executed"))
+					observer.onCompleted()
+				}
+				return Disposables.create()
+			}
+		}()
+		
+		let action = CompositeAction(scheduler: nil, actions: [ChangeTextValueAction(newText: "Action 1 executed", scheduler: nil),
+		                                                       CustomDescriptorAction(scheduler: nil, descriptor: descriptor1),
+		                                                       ChangeTextValueAction(newText: "Action 3 executed", scheduler: nil),
+		                                                       ChangeTextValueAction(newText: "Action 4 executed"),
+		                                                       EnumAction.inMainScheduler(.just((TestState(text: "Action 5 executed")))),
+		                                                       CustomDescriptorAction(scheduler: nil, descriptor: descriptor2),])
+		store.dispatch(action)
+		store.dispatch(CompletionAction())
+		
+		waitForExpectations(timeout: 3, handler: nil)
+		
+		let expectedStateHistoryTextValues = ["Initial value",
+		                                      "Action 1 executed",
+		                                      "Action 2 executed",
+		                                      "Action 3 executed",
+		                                      "Action 4 executed",
+		                                      "Action 5 executed",
+		                                      "Action 6 executed",
+		                                      "Completed"]
+		
+		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
+	}
 }
