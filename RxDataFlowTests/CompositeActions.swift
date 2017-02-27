@@ -166,7 +166,6 @@ class CompositeActions: XCTestCase {
 		
 		let descriptor1: Observable<RxStateType> = {
 			return Observable.create { observer in
-				
 				DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 1.0) {
 					observer.onNext(TestState(text: "Action 2 executed"))
 					observer.onCompleted()

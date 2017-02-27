@@ -79,14 +79,19 @@ public final class RxDataFlowController<State: RxStateType> : RxDataFlowControll
 						guard let compositeAction = action as? RxCompositeActionType else {
 							return Observable.from([action], scheduler: action.scheduler ?? object.scheduler)
 						}
-						
-						return Observable.from(compositeAction.actions.map { Observable.from([$0], scheduler: $0.scheduler ?? object.scheduler) })
-							.subscribeOn(object.scheduler)
-							.flatMap { $0 }
+                        
+                        return Observable.from(compositeAction.actions, scheduler: action.scheduler ?? object.scheduler)
+                        
+//                        return Observable.from(compositeAction.actions).observeOn(object.scheduler)
+//                            .flatMap { Observable.from([$0], scheduler: $0.scheduler ?? object.scheduler) }
+                        
+						//return Observable.from(compositeAction.actions.map { Observable.from([$0], scheduler: $0.scheduler ?? object.scheduler) })
+						//	.flatMap { $0 }
 					}()
 					
 					return actions.flatMap { a -> Observable<RxStateType> in
-						return object.reducer.handle(a, flowController: object).subscribeOn(a.scheduler ?? object.scheduler).observeOn(a.scheduler ?? object.scheduler)
+                        return object.reducer.handle(a, flowController: object)
+                            .subscribeOn(a.scheduler ?? object.scheduler).observeOn(a.scheduler ?? object.scheduler)
 					}
 				}()
 				
