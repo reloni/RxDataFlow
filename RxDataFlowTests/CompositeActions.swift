@@ -166,7 +166,9 @@ class CompositeActions: XCTestCase {
 		
 		let descriptor1: Observable<RxStateType> = {
 			return Observable.create { observer in
+				XCTAssertEqual(store.currentState.state.text, "Action 1 executed")
 				DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 1.0) {
+					XCTAssertEqual(store.currentState.state.text, "Action 1 executed")
 					observer.onNext(TestState(text: "Action 2 executed"))
 					observer.onCompleted()
 				}
@@ -176,8 +178,9 @@ class CompositeActions: XCTestCase {
 		
 		let descriptor2: Observable<RxStateType> = {
 			return Observable.create { observer in
-				
+				XCTAssertEqual(store.currentState.state.text, "Action 5 executed")
 				DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.2) {
+					XCTAssertEqual(store.currentState.state.text, "Action 5 executed")
 					observer.onNext(TestState(text: "Action 6 executed"))
 					observer.onCompleted()
 				}

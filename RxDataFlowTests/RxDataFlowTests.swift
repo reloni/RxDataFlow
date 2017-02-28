@@ -295,52 +295,56 @@ class RxStateTests: XCTestCase {
 		
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
-    
-    func testSerialActionDispatch_2() {
-        let store = RxDataFlowController(reducer: TestStoreReducer(),
-                                         initialState: TestState(text: "Initial value"), maxHistoryItems: 8)
-        let completeExpectation = expectation(description: "Should perform all non-error actions")
-        
-        _ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
-            completeExpectation.fulfill()
-        })
-        
-        let descriptor1: Observable<RxStateType> = {
-            return Observable.create { observer in
-                DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 1.0) {
-                    observer.onNext(TestState(text: "Action 2 executed"))
-                    observer.onCompleted()
-                }
-                return Disposables.create()
-            }
-        }()
-        let descriptor2: Observable<RxStateType> = {
-            return Observable.create { observer in
-                DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.4) {
-                    observer.onNext(TestState(text: "Action 3 executed"))
-                    observer.onCompleted()
-                }
-                return Disposables.create()
-            }
-        }()
-        
-        store.dispatch(ChangeTextValueAction(newText: "Action 1 executed"))
-        store.dispatch(CustomDescriptorAction(scheduler: nil, descriptor: descriptor1))
-        store.dispatch(CustomDescriptorAction(scheduler: nil, descriptor: descriptor2))
-        store.dispatch(ChangeTextValueAction(newText: "Action 4 executed"))
-        store.dispatch(CompletionAction())
-        
-        waitForExpectations(timeout: 5, handler: nil)
-        
-        let expectedStateHistoryTextValues = ["Initial value",
-                                              "Action 1 executed",
-                                              "Action 2 executed",
-                                              "Action 3 executed",
-                                              "Action 4 executed",
-                                              "Completed"]
-        
-        XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
-    }
+	
+	func testSerialActionDispatch_2() {
+		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		                                 initialState: TestState(text: "Initial value"), maxHistoryItems: 8)
+		let completeExpectation = expectation(description: "Should perform all non-error actions")
+		
+		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
+			completeExpectation.fulfill()
+		})
+		
+		let descriptor1: Observable<RxStateType> = {
+			return Observable.create { observer in
+				XCTAssertEqual(store.currentState.state.text, "Action 1 executed")
+				DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 1.0) {
+					XCTAssertEqual(store.currentState.state.text, "Action 1 executed")
+					observer.onNext(TestState(text: "Action 2 executed"))
+					observer.onCompleted()
+				}
+				return Disposables.create()
+			}
+		}()
+		let descriptor2: Observable<RxStateType> = {
+			return Observable.create { observer in
+				XCTAssertEqual(store.currentState.state.text, "Action 2 executed")
+				DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.4) {
+					XCTAssertEqual(store.currentState.state.text, "Action 2 executed")
+					observer.onNext(TestState(text: "Action 3 executed"))
+					observer.onCompleted()
+				}
+				return Disposables.create()
+			}
+		}()
+		
+		store.dispatch(ChangeTextValueAction(newText: "Action 1 executed"))
+		store.dispatch(CustomDescriptorAction(scheduler: nil, descriptor: descriptor1))
+		store.dispatch(CustomDescriptorAction(scheduler: nil, descriptor: descriptor2))
+		store.dispatch(ChangeTextValueAction(newText: "Action 4 executed"))
+		store.dispatch(CompletionAction())
+		
+		waitForExpectations(timeout: 5, handler: nil)
+		
+		let expectedStateHistoryTextValues = ["Initial value",
+		                                      "Action 1 executed",
+		                                      "Action 2 executed",
+		                                      "Action 3 executed",
+		                                      "Action 4 executed",
+		                                      "Completed"]
+		
+		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
+	}
 	
 	func testDispatch_1() {
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
@@ -576,5 +580,5 @@ class RxStateTests: XCTestCase {
 		
 		XCTAssertEqual(1, action2Scheduler.scheduleCounter)
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
-	}	
+	}
 }

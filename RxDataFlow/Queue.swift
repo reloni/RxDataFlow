@@ -41,9 +41,9 @@ public struct Queue<T> {
 			head = 0
 		}
         
-        if let current = peek() {
-            currentItemSubject.onNext(current)
-        }
+		if let current = peek() {
+			currentItemSubject.onNext(current)
+		}
 		
 		return element
 	}
