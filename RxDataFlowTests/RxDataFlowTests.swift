@@ -19,11 +19,6 @@ struct ChangeTextValueAction : RxActionType {
 	var scheduler: ImmediateSchedulerType?
 }
 
-//struct CompositeAction : RxCompositeActionType {
-//	var scheduler: ImmediateSchedulerType?
-//	var actions: [RxActionType]
-//}
-
 extension ChangeTextValueAction {
 	init(newText: String) {
 		self.init(newText: newText, scheduler: nil)
