@@ -13,6 +13,26 @@ public protocol RxDataFlowControllerType {
 	func dispatch(_ action: RxActionType)
 }
 
+public protocol RxStateType { }
+
+public protocol RxReducerType {
+	func handle(_ action: RxActionType, flowController: RxDataFlowControllerType) -> Observable<RxStateType>
+}
+
+public protocol RxActionType {
+	var scheduler: ImmediateSchedulerType? { get }
+}
+
+public struct RxCompositeAction : RxActionType {
+	public let scheduler: ImmediateSchedulerType?
+	public let actions: [RxActionType]
+}
+
+public struct RxInitializationAction : RxActionType {
+	public var scheduler: ImmediateSchedulerType?
+}
+
+
 public final class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType {
 	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject.asObservable().observeOn(scheduler) }
 	public var currentState: (setBy: RxActionType, state: State) { return stateStack.peek()! }
@@ -32,15 +52,47 @@ public final class RxDataFlowController<State: RxStateType> : RxDataFlowControll
 	public init(reducer: RxReducerType,
 	            initialState: State,
 	            maxHistoryItems: UInt = 50,
-	            scheduler: ImmediateSchedulerType = SerialDispatchQueueScheduler(qos: .utility, internalSerialQueueName: "RxStore.DispatchQueue")) {
+	            scheduler: ImmediateSchedulerType = SerialDispatchQueueScheduler(qos: .utility, internalSerialQueueName: "RxStore.DispatchQueue"),
+	            dispatchAction: RxActionType? = nil) {
 		self.scheduler = scheduler
 		self.reducer = reducer
 		stateStack = FixedStack(capacity: maxHistoryItems)
-		stateStack.push((setBy: RxInitialStateAction() as RxActionType, state: initialState))
+		stateStack.push((setBy: RxInitializationAction(), state: initialState))
 		
-		currentStateSubject = BehaviorSubject(value: (setBy: RxInitialStateAction() as RxActionType, state: initialState))
+		currentStateSubject = BehaviorSubject(value: (setBy: RxInitializationAction(), state: initialState))
 		
 		subscribe()
+		
+		if let dispatchAction = dispatchAction {
+			dispatch(dispatchAction)
+		}
+	}
+	
+	func handle(compositeAction action: RxCompositeAction) -> Observable<RxStateType> {
+		return Observable.create { [weak self] observer in
+			guard let object = self else { return Disposables.create() }
+			
+			var compositeQueue = Queue<RxActionType>()
+			
+			let disposable = compositeQueue.currentItemSubject.observeOn(object.scheduler).flatMap { action -> Observable<RxStateType> in
+				return Observable.create { _ in
+					let subscribsion = Observable.from([action], scheduler: action.scheduler ?? object.scheduler)
+						.flatMap { a -> Observable<RxStateType> in object.reducer.handle(action, flowController: object).subscribeOn(action.scheduler ?? object.scheduler) }
+						.do(
+							onNext: { observer.onNext($0) },
+							onError: { observer.onError($0) },
+							onCompleted: { _ = compositeQueue.dequeue() },
+							onDispose: { if compositeQueue.count == 0 { observer.onCompleted() } })
+						.subscribe()
+					return Disposables.create { subscribsion.dispose() }
+				}
+			}.subscribe()
+			
+			for a in action.actions { compositeQueue.enqueue(a) }
+			
+			return Disposables.create { disposable.dispose() }
+		}
+		
 	}
 	
 	private func subscribe() {
@@ -49,14 +101,16 @@ public final class RxDataFlowController<State: RxStateType> : RxDataFlowControll
 		actionsQueue.currentItemSubject.observeOn(scheduler)
 			.flatMap { [weak self] action -> Observable<RxStateType?> in
 				guard let object = self else { return Observable.empty() }
+
+				let handle: Observable<RxStateType> = {
+					guard let compositeAction = action as? RxCompositeAction else {
+						return Observable.from([action], scheduler: action.scheduler ?? object.scheduler)
+							.flatMap { a -> Observable<RxStateType> in object.reducer.handle(action, flowController: object).subscribeOn(action.scheduler ?? object.scheduler) }
+					}
+					return object.handle(compositeAction: compositeAction)
+				}()
 				
-				let handle = Observable<RxStateType>.create { observer in
-					let disposable = object.reducer.handle(action, flowController: object).subscribe(observer)
-					return Disposables.create { disposable.dispose() }
-				}
-				
-				return handle.subscribeOn(action.scheduler ?? object.scheduler)
-					.observeOn(object.scheduler)
+				return handle
 					.do(
 						onNext: { next in
 							object.currentStateSubject.onNext((setBy: action, state: next as! State))
@@ -78,7 +132,6 @@ public final class RxDataFlowController<State: RxStateType> : RxDataFlowControll
 				params.1.actionsQueue.enqueue(params.0)
 				return Disposables.create()
 				}.subscribe()
-			
 			}.addDisposableTo(bag)
 	}
 }
