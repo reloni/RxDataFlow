@@ -23,8 +23,9 @@ public protocol RxActionType {
 	var scheduler: ImmediateSchedulerType? { get }
 }
 
-public protocol RxCompositeActionType : RxActionType {
-	var actions: [RxActionType] { get }
+public struct RxCompositeAction : RxActionType {
+	public let scheduler: ImmediateSchedulerType?
+	public let actions: [RxActionType]
 }
 
 public struct RxInitializationAction : RxActionType {
@@ -67,7 +68,7 @@ public final class RxDataFlowController<State: RxStateType> : RxDataFlowControll
 		}
 	}
 	
-	static func sync(compositeAction action: RxCompositeActionType, flowController: RxDataFlowController<State>) -> Observable<RxStateType> {
+	static func sync(compositeAction action: RxCompositeAction, flowController: RxDataFlowController<State>) -> Observable<RxStateType> {
 		return Observable.create { observer in
 			var queue = Queue<RxActionType>()
 			
@@ -137,7 +138,7 @@ public final class RxDataFlowController<State: RxStateType> : RxDataFlowControll
 //				}()
 				
 				let handle: Observable<RxStateType> = {
-					guard let compositeAction = action as? RxCompositeActionType else {
+					guard let compositeAction = action as? RxCompositeAction else {
 						return Observable.from([action], scheduler: action.scheduler ?? object.scheduler)
 							.flatMap { a -> Observable<RxStateType> in object.reducer.handle(action, flowController: object).subscribeOn(action.scheduler ?? object.scheduler) }
 //						return object.reducer.handle(action, flowController: object)

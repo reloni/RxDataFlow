@@ -20,7 +20,7 @@ class CompositeActions: XCTestCase {
 			completeExpectation.fulfill()
 		})
 		
-		let action = CompositeAction(scheduler: nil, actions: [ChangeTextValueAction(newText: "Action 1 executed"),
+		let action = RxCompositeAction(scheduler: nil, actions: [ChangeTextValueAction(newText: "Action 1 executed"),
 		                                                       ChangeTextValueAction(newText: "Action 2 executed"),
 		                                                       ChangeTextValueAction(newText: "Action 3 executed"),
 		                                                       ChangeTextValueAction(newText: "Action 4 executed")])
@@ -48,7 +48,7 @@ class CompositeActions: XCTestCase {
 			completeExpectation.fulfill()
 		})
 		
-		let action = CompositeAction(scheduler: nil, actions: [ChangeTextValueAction(newText: "Action 1 executed"),
+		let action = RxCompositeAction(scheduler: nil, actions: [ChangeTextValueAction(newText: "Action 1 executed"),
 		                                                       ChangeTextValueAction(newText: "Action 2 executed"),
 		                                                       ErrorAction(),
 		                                                       ChangeTextValueAction(newText: "Action 3 executed"),
@@ -75,16 +75,16 @@ class CompositeActions: XCTestCase {
 			completeExpectation.fulfill()
 		})
 		
-		let action1 = CompositeAction(scheduler: nil, actions: [ChangeTextValueAction(newText: "Action 1 executed"),
+		let action1 = RxCompositeAction(scheduler: nil, actions: [ChangeTextValueAction(newText: "Action 1 executed"),
 		                                                        ChangeTextValueAction(newText: "Action 2 executed"),
 		                                                        ChangeTextValueAction(newText: "Action 3 executed"),
 		                                                        ChangeTextValueAction(newText: "Action 4 executed")])
-		let action2 = CompositeAction(scheduler: nil, actions: [ChangeTextValueAction(newText: "Action 5 executed"),
+		let action2 = RxCompositeAction(scheduler: nil, actions: [ChangeTextValueAction(newText: "Action 5 executed"),
 		                                                        ChangeTextValueAction(newText: "Action 6 executed"),
 		                                                        ErrorAction(),
 		                                                        ChangeTextValueAction(newText: "Action 7 executed"),
 		                                                        ChangeTextValueAction(newText: "Action 8 executed")])
-		let action3 = CompositeAction(scheduler: nil, actions: [ChangeTextValueAction(newText: "Action 9 executed"),
+		let action3 = RxCompositeAction(scheduler: nil, actions: [ChangeTextValueAction(newText: "Action 9 executed"),
 		                                                        ChangeTextValueAction(newText: "Action 10 executed"),
 		                                                        ChangeTextValueAction(newText: "Action 11 executed"),
 		                                                        ChangeTextValueAction(newText: "Action 12 executed")])
@@ -125,7 +125,7 @@ class CompositeActions: XCTestCase {
 		let scheduler1 = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let scheduler2 = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let scheduler3 = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
-		let action = CompositeAction(scheduler: topScheduler, actions: [ChangeTextValueAction(newText: "Action 1 executed", scheduler: scheduler1),
+		let action = RxCompositeAction(scheduler: topScheduler, actions: [ChangeTextValueAction(newText: "Action 1 executed", scheduler: scheduler1),
 		                                                       ChangeTextValueAction(newText: "Action 2 executed", scheduler: scheduler2),
 		                                                       EnumAction.inCustomScheduler(scheduler3, .just((TestState(text: "Action 3 executed")))),
 		                                                       ChangeTextValueAction(newText: "Action 4 executed"),
@@ -188,7 +188,7 @@ class CompositeActions: XCTestCase {
 			}
 		}()
 		
-		let action = CompositeAction(scheduler: nil, actions: [ChangeTextValueAction(newText: "Action 1 executed", scheduler: nil),
+		let action = RxCompositeAction(scheduler: nil, actions: [ChangeTextValueAction(newText: "Action 1 executed", scheduler: nil),
 		                                                       CustomDescriptorAction(scheduler: nil, descriptor: descriptor1),
 		                                                       ChangeTextValueAction(newText: "Action 3 executed", scheduler: nil),
 		                                                       ChangeTextValueAction(newText: "Action 4 executed"),
