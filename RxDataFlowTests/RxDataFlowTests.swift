@@ -87,18 +87,7 @@ struct TestStoreReducer : RxReducerType {
 	}
 }
 
-class RxStateTests: XCTestCase {
-	
-	override func setUp() {
-		super.setUp()
-		// Put setup code here. This method is called before the invocation of each test method in the class.
-	}
-	
-	override func tearDown() {
-		// Put teardown code here. This method is called after the invocation of each test method in the class.
-		super.tearDown()
-	}
-	
+class RxDataFlowTests: XCTestCase {	
 	func testInitialState() {
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
 		                                 initialState: TestState(text: "Initial value"))
@@ -168,25 +157,29 @@ class RxStateTests: XCTestCase {
 		                                 maxHistoryItems: 10)
 		let completeExpectation = expectation(description: "Should change state")
 		
-		let counter = 10
+        _ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
+            completeExpectation.fulfill()
+        })
 		
-		var newStateCounter = 0
-		_ = store.state.skip(1).subscribe(onNext: { _ in
-			newStateCounter += 1
-			if newStateCounter == 10 {
-				completeExpectation.fulfill()
-			}
-		})
-		
-		for i in 0...counter {
+		for i in 0...10 {
 			store.dispatch(ChangeTextValueAction(newText: "New text \(i)"))
 		}
+        store.dispatch(CompletionAction())
 		
 		waitForExpectations(timeout: 1, handler: nil)
 		
-		XCTAssertEqual(store.stateStack.count, 10)
-		XCTAssertEqual(store.stateStack.pop()?.state.text, "New text 10")
-		XCTAssertEqual(store.stateStack.first()?.state.text, "New text 1")
+        let expectedStateHistoryTextValues = ["New text 2",
+                                              "New text 3",
+                                              "New text 4",
+                                              "New text 5",
+                                              "New text 6",
+                                              "New text 7",
+                                              "New text 8",
+                                              "New text 9",
+                                              "New text 10",
+                                              "Completed"]
+        
+        XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
 	
 	
