@@ -68,63 +68,60 @@ public final class RxDataFlowController<State: RxStateType> : RxDataFlowControll
 		}
 	}
 	
-	func handle(compositeAction action: RxCompositeAction) -> Observable<RxStateType> {
-		return Observable.create { [weak self] observer in
-			guard let object = self else { return Disposables.create() }
-			
-			var compositeQueue = Queue<RxActionType>()
-			
-			let disposable = compositeQueue.currentItemSubject.observeOn(object.scheduler).flatMap { action -> Observable<RxStateType> in
-				return Observable.create { _ in
-					let subscribsion = Observable.from([action], scheduler: action.scheduler ?? object.scheduler)
-						.flatMap { a -> Observable<RxStateType> in object.reducer.handle(action, flowController: object).subscribeOn(action.scheduler ?? object.scheduler) }
-						.do(
-							onNext: { observer.onNext($0) },
-							onError: { observer.onError($0) },
-							onCompleted: { _ = compositeQueue.dequeue() },
-							onDispose: { if compositeQueue.count == 0 { observer.onCompleted() } })
-						.subscribe()
-					return Disposables.create { subscribsion.dispose() }
-				}
-			}.subscribe()
-			
-			for a in action.actions { compositeQueue.enqueue(a) }
-			
-			return Disposables.create { disposable.dispose() }
-		}
-		
-	}
-	
 	private func subscribe() {
 		currentStateSubject.skip(1).subscribe(onNext: { [weak self] newState in self?.stateStack.push(newState) }).addDisposableTo(bag)
 		
 		actionsQueue.currentItemSubject.observeOn(scheduler)
-			.flatMap { [weak self] action -> Observable<RxStateType?> in
+			.flatMap { [weak self] action -> Observable<Void> in
 				guard let object = self else { return Observable.empty() }
 
-				let handle: Observable<RxStateType> = {
-					guard let compositeAction = action as? RxCompositeAction else {
-						return Observable.from([action], scheduler: action.scheduler ?? object.scheduler)
-							.flatMap { a -> Observable<RxStateType> in object.reducer.handle(action, flowController: object).subscribeOn(action.scheduler ?? object.scheduler) }
-					}
-					return object.handle(compositeAction: compositeAction)
-				}()
-				
-				return handle
-					.do(
-						onNext: { next in
-							object.currentStateSubject.onNext((setBy: action, state: next as! State))
-					},
-						onError: { error in
-							object.errorsSubject.onNext((state: object.currentState.state, action: action, error: error))
-					},
-						onDispose: { _ in
-							_ = object.actionsQueue.dequeue()
-					})
-					.flatMap { result -> Observable<RxStateType?> in .just(result) }
-					.catchErrorJustReturn(nil)
+                return object.observe(action: action)
 			}.subscribe().addDisposableTo(bag)
 	}
+    
+    private func observe(action: RxActionType) -> Observable<Void> {
+        let object = self
+        let handle: Observable<RxStateType> = {
+            guard let compositeAction = action as? RxCompositeAction else {
+                return Observable.from([action], scheduler: action.scheduler ?? object.scheduler)
+                    .flatMap { a -> Observable<RxStateType> in object.reducer.handle(action, flowController: object).subscribeOn(action.scheduler ?? object.scheduler) }
+            }
+            return object.observe(compositeAction: compositeAction)
+        }()
+        
+        return handle
+            .do(onNext: { object.currentStateSubject.onNext((setBy: action, state: $0 as! State)) },
+                onError: { object.errorsSubject.onNext((state: object.currentState.state, action: action, error: $0)) },
+                onDispose: { _ in _ = object.actionsQueue.dequeue() })
+            .flatMap { result -> Observable<RxStateType?> in .just(result) }
+            .catchErrorJustReturn(nil)
+            .flatMap { _ in return Observable<Void>.just() }
+    }
+    
+    func observe(compositeAction action: RxCompositeAction) -> Observable<RxStateType> {
+        return Observable.create { [weak self] observer in
+            guard let object = self else { return Disposables.create() }
+            
+            var compositeQueue = Queue<RxActionType>()
+            
+            let disposable = compositeQueue.currentItemSubject.observeOn(object.scheduler).flatMap { action -> Observable<RxStateType> in
+                return Observable.create { _ in
+                    let subscribsion = Observable.from([action], scheduler: action.scheduler ?? object.scheduler)
+                        .flatMap { a -> Observable<RxStateType> in object.reducer.handle(action, flowController: object).subscribeOn(action.scheduler ?? object.scheduler) }
+                        .do(onNext: { observer.onNext($0) },
+                            onError: { observer.onError($0) },
+                            onCompleted: { _ = compositeQueue.dequeue() },
+                            onDispose: { if compositeQueue.count == 0 { observer.onCompleted() } })
+                        .subscribe()
+                    return Disposables.create { subscribsion.dispose() }
+                }
+            }.subscribe()
+            
+            for a in action.actions { compositeQueue.enqueue(a) }
+            
+            return Disposables.create { disposable.dispose() }
+        }
+    }
 	
 	public func dispatch(_ action: RxActionType) {
 		scheduler.schedule((action, self)) { params in
