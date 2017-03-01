@@ -10,6 +10,20 @@ import XCTest
 import RxSwift
 @testable import RxDataFlow
 
+final class TestScheduler : ImmediateSchedulerType {
+    let internalScheduler: SchedulerType
+    var scheduleCounter = 0
+    init(internalScheduler: SchedulerType) {
+        self.internalScheduler = internalScheduler
+    }
+    func schedule<StateType>(_ state: StateType, action: @escaping (StateType) -> Disposable) -> Disposable {
+        if state is ScheduledDisposable {
+            scheduleCounter += 1
+        }
+        return internalScheduler.schedule(state, action: action)
+    }
+}
+
 struct TestState : RxStateType {
 	let text: String
 }
@@ -87,7 +101,7 @@ struct TestStoreReducer : RxReducerType {
 	}
 }
 
-class RxDataFlowTests: XCTestCase {	
+class RxDataFlowTests: XCTestCase {
 	func testInitialState() {
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
 		                                 initialState: TestState(text: "Initial value"))
