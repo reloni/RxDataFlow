@@ -44,7 +44,7 @@ public final class RxDataFlowController<State: RxStateType> : RxDataFlowControll
 	
 	let bag = DisposeBag()
 	let reducer: RxReducerType
-	let scheduler: ImmediateSchedulerType
+    let scheduler: ImmediateSchedulerType
 	
 	var stateStack: FixedStack<(setBy: RxActionType, state: State)>
 	var actionsQueue = Queue<RxActionType>()
@@ -52,11 +52,22 @@ public final class RxDataFlowController<State: RxStateType> : RxDataFlowControll
 	
 	let currentStateSubject: BehaviorSubject<(setBy: RxActionType, state: State)>
 	let errorsSubject = PublishSubject<(state: State, action: RxActionType, error: Error)>()
+    
+    public convenience init(reducer: RxReducerType,
+                            initialState: State,
+                            maxHistoryItems: UInt = 50,
+                            dispatchAction: RxActionType? = nil) {
+        self.init(reducer: reducer,
+                  initialState: initialState,
+                  maxHistoryItems: maxHistoryItems,
+                  scheduler: SerialDispatchQueueScheduler(qos: .utility, internalSerialQueueName: "RxStore.DispatchQueue"),
+                  dispatchAction: dispatchAction)
+    }
 	
-	public init(reducer: RxReducerType,
+	init(reducer: RxReducerType,
 	            initialState: State,
 	            maxHistoryItems: UInt = 50,
-	            scheduler: ImmediateSchedulerType = SerialDispatchQueueScheduler(qos: .utility, internalSerialQueueName: "RxStore.DispatchQueue"),
+	            scheduler: ImmediateSchedulerType,
 	            dispatchAction: RxActionType? = nil) {
 		self.scheduler = scheduler
 		self.reducer = reducer
