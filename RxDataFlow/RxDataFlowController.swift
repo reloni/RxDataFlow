@@ -26,6 +26,10 @@ public protocol RxActionType {
 public struct RxCompositeAction : RxActionType {
 	public let scheduler: ImmediateSchedulerType?
 	public let actions: [RxActionType]
+	public init(actions: [RxActionType], scheduler: ImmediateSchedulerType? = nil) {
+		self.actions = actions
+		self.scheduler = scheduler
+	}
 }
 
 public struct RxInitializationAction : RxActionType {
