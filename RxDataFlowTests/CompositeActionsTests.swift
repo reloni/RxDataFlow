@@ -39,6 +39,41 @@ class CompositeActions: XCTestCase {
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
 	
+	func testCorrectSetByAction() {
+		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		                                 initialState: TestState(text: "Initial value"))
+		
+		let completeExpectation = expectation(description: "Should perform all non-error actions")
+		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
+			completeExpectation.fulfill()
+		})
+		
+		let changeTextValueActionExpectation = expectation(description: "Should perform ChangeTextValueAction with correct setBy")
+		let customDescriptorActionExpectation = expectation(description: "Should perform CustomDescriptorAction with correct setBy")
+		_ = store.state.subscribe(onNext: { next in
+			if next.setBy is ChangeTextValueAction {
+				changeTextValueActionExpectation.fulfill()
+			} else if next.setBy is CustomDescriptorAction {
+				customDescriptorActionExpectation.fulfill()
+			}
+		})
+		
+		let action = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed"),
+		                                         CustomDescriptorAction(scheduler: nil, descriptor: .just((TestState(text: "Action 2 executed"))))])
+		store.dispatch(action)
+		store.dispatch(CompletionAction())
+		
+		waitForExpectations(timeout: 1, handler: nil)
+		
+		let expectedStateHistoryTextValues = ["Initial value",
+		                                      "Action 1 executed",
+		                                      "Action 2 executed",
+		                                      "Completed"]
+		
+		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
+		XCTAssertTrue(store.currentState.setBy is CompletionAction)
+	}
+	
 	func testCompositeActionStopIfErrorOccurred() {
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
 		                                 initialState: TestState(text: "Initial value"))
