@@ -54,14 +54,7 @@ struct FixedStack<T> {
 	}
 	
 	func peek() -> T? {
-		if isEmpty {
-			return nil
-		} else {
-			return array.last ?? nil
-		}
-	}
-	
-	internal func first() -> T? {
-		return array[head]
+        guard !isEmpty else { return nil }
+        return array.last!
 	}
 }

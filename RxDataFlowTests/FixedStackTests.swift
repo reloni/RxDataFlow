@@ -20,6 +20,14 @@ class FixedQueueTests: XCTestCase {
 		// Put teardown code here. This method is called after the invocation of each test method in the class.
 		super.tearDown()
 	}
+    
+    func testPeekWhenEmpty() {
+        var stack = FixedStack<Int>(capacity: 5)
+        XCTAssertNil(stack.peek())
+        stack.push(1)
+        _ = stack.pop()
+        XCTAssertNil(stack.peek())
+    }
 	
 	func testDequeueWhenExceedsCapacity() {
 		var stack = FixedStack<Int>(capacity: 5)
