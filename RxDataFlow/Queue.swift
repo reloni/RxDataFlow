@@ -9,8 +9,8 @@
 import RxSwift
 
 public struct Queue<T> {
-	fileprivate var array = [T?]()
-	fileprivate var head = 0
+	internal var array = [T?]()
+	internal var head = 0
     
     let currentItemSubject = PublishSubject<T>()
 	
