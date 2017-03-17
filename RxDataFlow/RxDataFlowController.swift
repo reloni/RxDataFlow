@@ -114,7 +114,7 @@ public final class RxDataFlowController<State: RxStateType> : RxDataFlowControll
             .flatMap { _ in return Observable<Void>.just() }
     }
     
-    func observe(compositeAction action: RxCompositeAction) -> Observable<(setBy: RxActionType, state: RxStateType)> {
+    func observe(compositeAction: RxCompositeAction) -> Observable<(setBy: RxActionType, state: RxStateType)> {
         return Observable.create { [weak self] observer in
             guard let object = self else { return Disposables.create() }
             
@@ -122,18 +122,20 @@ public final class RxDataFlowController<State: RxStateType> : RxDataFlowControll
             
             let disposable = compositeQueue.currentItemSubject.observeOn(object.scheduler).flatMap { action -> Observable<RxStateType> in
                 return Observable.create { _ in
-                    let subscribsion = Observable.from([action], scheduler: action.scheduler ?? object.scheduler)
-                        .flatMap { act -> Observable<RxStateType> in object.reducer.handle(act, flowController: object).subscribeOn(act.scheduler ?? object.scheduler) }
-												.do(onNext: { observer.onNext((setBy: action, state: $0)) },
+                    let subscribsion = Observable.from([action], scheduler: action.scheduler ?? compositeAction.scheduler ?? object.scheduler)
+                        .flatMap { act -> Observable<RxStateType> in
+                            object.reducer.handle(act, flowController: object).subscribeOn(act.scheduler ?? compositeAction.scheduler ?? object.scheduler)
+                        }
+                        .do(onNext: { observer.onNext((setBy: action, state: $0)) },
                             onError: { observer.onError($0) },
                             onCompleted: { _ = compositeQueue.dequeue() },
                             onDispose: { if compositeQueue.count == 0 { observer.onCompleted() } })
                         .subscribe()
                     return Disposables.create { subscribsion.dispose() }
                 }
-            }.subscribe()
+                }.subscribe()
             
-            for a in action.actions { compositeQueue.enqueue(a) }
+            for a in compositeAction.actions { compositeQueue.enqueue(a) }
             
             return Disposables.create { disposable.dispose() }
         }

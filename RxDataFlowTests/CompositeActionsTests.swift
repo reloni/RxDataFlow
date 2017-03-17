@@ -160,13 +160,23 @@ class CompositeActions: XCTestCase {
 		let scheduler1 = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let scheduler2 = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let scheduler3 = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
-		let action = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed", scheduler: scheduler1),
+		
+        let action1 = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed", scheduler: scheduler1),
 		                                                       ChangeTextValueAction(newText: "Action 2 executed", scheduler: scheduler2),
 		                                                       EnumAction.inCustomScheduler(scheduler3, .just((TestState(text: "Action 3 executed")))),
 		                                                       ChangeTextValueAction(newText: "Action 4 executed"),
 		                                                       EnumAction.inMainScheduler(.just((TestState(text: "Action 5 executed"))))],
 		                               scheduler: topScheduler)
-		store.dispatch(action)
+		store.dispatch(action1)
+        
+        let action2 = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 6 executed", scheduler: nil),
+                                                  ChangeTextValueAction(newText: "Action 7 executed", scheduler: nil),
+                                                  EnumAction.inCustomScheduler(scheduler3, .just((TestState(text: "Action 8 executed")))),
+                                                  ChangeTextValueAction(newText: "Action 9 executed"),
+                                                  EnumAction.inMainScheduler(.just((TestState(text: "Action 10 executed"))))],
+                                        scheduler: nil)
+        store.dispatch(action2)
+        
 		store.dispatch(CompletionAction())
 		
 		waitForExpectations(timeout: 1, handler: nil)
@@ -177,15 +187,20 @@ class CompositeActions: XCTestCase {
 		                                      "Action 3 executed",
 		                                      "Action 4 executed",
 		                                      "Action 5 executed",
+		                                      "Action 6 executed",
+		                                      "Action 7 executed",
+		                                      "Action 8 executed",
+		                                      "Action 9 executed",
+		                                      "Action 10 executed",
 		                                      "Completed"]
 		
 		// nothing should be invoked in top level scheduler, specified by CompositeAction,
 		// because FlowController will use schedulers specified in child tasks
-		XCTAssertEqual(0, topScheduler.scheduleCounter)
+		XCTAssertEqual(1, topScheduler.scheduleCounter)
 		XCTAssertEqual(1, scheduler1.scheduleCounter)
 		XCTAssertEqual(1, scheduler2.scheduleCounter)
-		XCTAssertEqual(1, scheduler3.scheduleCounter)
-		XCTAssertEqual(2, (store.scheduler as! TestScheduler).scheduleCounter)
+		XCTAssertEqual(2, scheduler3.scheduleCounter)
+		XCTAssertEqual(4, (store.scheduler as! TestScheduler).scheduleCounter)
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
 	
