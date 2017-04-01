@@ -27,7 +27,8 @@ class CompositeActions: XCTestCase {
 		store.dispatch(action)
 		store.dispatch(CompletionAction())
 		
-		waitForExpectations(timeout: 1, handler: nil)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1)
+		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
 		                                      "Action 1 executed",
@@ -63,7 +64,8 @@ class CompositeActions: XCTestCase {
 		store.dispatch(action)
 		store.dispatch(CompletionAction())
 		
-		waitForExpectations(timeout: 1, handler: nil)
+		let result = XCTWaiter().wait(for: [changeTextValueActionExpectation, customDescriptorActionExpectation, completeExpectation], timeout: 1, enforceOrder: true)
+		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
 		                                      "Action 1 executed",
@@ -91,7 +93,8 @@ class CompositeActions: XCTestCase {
 		store.dispatch(action)
 		store.dispatch(CompletionAction())
 		
-		waitForExpectations(timeout: 1, handler: nil)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1)
+		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
 		                                      "Action 1 executed",
@@ -128,7 +131,8 @@ class CompositeActions: XCTestCase {
 		store.dispatch(action3)
 		store.dispatch(CompletionAction())
 		
-		waitForExpectations(timeout: 1, handler: nil)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1)
+		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
 		                                      "Action 1 executed",
@@ -179,7 +183,8 @@ class CompositeActions: XCTestCase {
 		
 		store.dispatch(CompletionAction())
 		
-		waitForExpectations(timeout: 1, handler: nil)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1)
+		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
 		                                      "Action 1 executed",
@@ -194,8 +199,6 @@ class CompositeActions: XCTestCase {
 		                                      "Action 10 executed",
 		                                      "Completed"]
 		
-		// nothing should be invoked in top level scheduler, specified by CompositeAction,
-		// because FlowController will use schedulers specified in child tasks
 		XCTAssertEqual(1, topScheduler.scheduleCounter)
 		XCTAssertEqual(1, scheduler1.scheduleCounter)
 		XCTAssertEqual(1, scheduler2.scheduleCounter)
@@ -248,7 +251,8 @@ class CompositeActions: XCTestCase {
 		store.dispatch(action)
 		store.dispatch(CompletionAction())
 		
-		waitForExpectations(timeout: 3, handler: nil)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 3)
+		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
 		                                      "Action 1 executed",

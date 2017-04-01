@@ -124,7 +124,8 @@ class RxDataFlowTests: XCTestCase {
 			completeExpectation.fulfill()
 		})
 		
-		waitForExpectations(timeout: 1, handler: nil)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1)
+		XCTAssertEqual(result, .completed)
 	}
 	
 	func testDispatchActionAfterInitialization() {
@@ -139,8 +140,9 @@ class RxDataFlowTests: XCTestCase {
 			completeExpectation.fulfill()
 		})
 		
-		waitForExpectations(timeout: 1, handler: nil)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1)
 		
+		XCTAssertEqual(result, .completed)
 		XCTAssertEqual(store.stateStack.count, 2)
 		XCTAssertEqual(store.stateStack.peek()?.state.text, "Change on init")
 	}
@@ -158,8 +160,9 @@ class RxDataFlowTests: XCTestCase {
 		
 		store.dispatch(ChangeTextValueAction(newText: "New text"))
 		
-		waitForExpectations(timeout: 1, handler: nil)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1)
 		
+		XCTAssertEqual(result, .completed)
 		XCTAssertEqual(store.stateStack.count, 2)
 		XCTAssertEqual(store.stateStack.peek()?.state.text, "New text")
 		XCTAssertTrue(store.stateStack.peek()?.setBy is ChangeTextValueAction)
@@ -180,7 +183,8 @@ class RxDataFlowTests: XCTestCase {
 		}
 		store.dispatch(CompletionAction())
 		
-		waitForExpectations(timeout: 1, handler: nil)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1)
+		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["New text 2",
 		                                      "New text 3",
@@ -215,7 +219,8 @@ class RxDataFlowTests: XCTestCase {
 		store.dispatch(ChangeTextValueAction(newText: "New text before error"))
 		store.dispatch(ErrorAction())
 		
-		waitForExpectations(timeout: 1, handler: nil)
+		let result = XCTWaiter().wait(for: [errorExpectation], timeout: 1)
+		XCTAssertEqual(result, .completed)
 	}
 	
 	func testContinueWorkAfterErrorAction() {
@@ -240,8 +245,9 @@ class RxDataFlowTests: XCTestCase {
 		store.dispatch(ChangeTextValueAction(newText: "Last text change"))
 		store.dispatch(CompletionAction())
 		
-		waitForExpectations(timeout: 1, handler: nil)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1)
 		
+		XCTAssertEqual(result, .completed)
 		XCTAssertEqual(5, changeTextValueActionCount, "Should change text five times")
 		XCTAssertEqual("Completed", store.currentState.state.text)
 		let expectedStateHistoryTextValues = ["Initial value",
@@ -284,7 +290,8 @@ class RxDataFlowTests: XCTestCase {
 			store.dispatch(action)
 		}
 		
-		waitForExpectations(timeout: 5, handler: nil)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 5)
+		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["Action 1 executed",
 		                                      "Action 2 executed",
@@ -336,7 +343,8 @@ class RxDataFlowTests: XCTestCase {
 		store.dispatch(ChangeTextValueAction(newText: "Action 4 executed"))
 		store.dispatch(CompletionAction())
 		
-		waitForExpectations(timeout: 5, handler: nil)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 5)
+		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
 		                                      "Action 1 executed",
@@ -362,7 +370,8 @@ class RxDataFlowTests: XCTestCase {
 		DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.1) { store.dispatch(ChangeTextValueAction(newText: "New text 3")) }
 		DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.30) { store.dispatch(CompletionAction()) }
 		
-		waitForExpectations(timeout: 1, handler: nil)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1)
+		XCTAssertEqual(result, .completed)
 		
 		XCTAssertEqual("Completed", store.currentState.state.text)
 		let expectedStateHistoryTextValues = ["Initial value",
@@ -397,7 +406,8 @@ class RxDataFlowTests: XCTestCase {
 		store.dispatch(action1)
 		store.dispatch(CompletionAction())
 		
-		waitForExpectations(timeout: 1, handler: nil)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1)
+		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
 		                                      "Action 1 executed",
@@ -427,7 +437,8 @@ class RxDataFlowTests: XCTestCase {
 		store.dispatch(action3)
 		store.dispatch(CompletionAction())
 		
-		waitForExpectations(timeout: 1, handler: nil)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1)
+		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
 		                                      "Action 1 executed",
@@ -460,7 +471,8 @@ class RxDataFlowTests: XCTestCase {
 		store.dispatch(action3)
 		store.dispatch(CompletionAction())
 		
-		waitForExpectations(timeout: 1, handler: nil)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1)
+		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
 		                                      "Action 1 executed",
@@ -496,7 +508,8 @@ class RxDataFlowTests: XCTestCase {
 		store.dispatch(action1)
 		store.dispatch(CompletionAction())
 		
-		waitForExpectations(timeout: 1, handler: nil)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1)
+		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
 		                                      "Action 1 executed",
@@ -534,7 +547,8 @@ class RxDataFlowTests: XCTestCase {
 		store.dispatch(action1)
 		store.dispatch(CompletionAction())
 		
-		waitForExpectations(timeout: 4, handler: nil)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 4)
+		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
 		                                      "Action executed (1)",
@@ -573,7 +587,8 @@ class RxDataFlowTests: XCTestCase {
 		store.dispatch(action2)
 		store.dispatch(CompletionAction())
 		
-		waitForExpectations(timeout: 1, handler: nil)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1)
+		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
 		                                      "Action 1 executed",
