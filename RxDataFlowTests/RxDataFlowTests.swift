@@ -11,17 +11,17 @@ import RxSwift
 @testable import RxDataFlow
 
 final class TestScheduler : ImmediateSchedulerType {
-    let internalScheduler: SchedulerType
-    var scheduleCounter = 0
-    init(internalScheduler: SchedulerType) {
-        self.internalScheduler = internalScheduler
-    }
-    func schedule<StateType>(_ state: StateType, action: @escaping (StateType) -> Disposable) -> Disposable {
-        if state is ScheduledDisposable {
-            scheduleCounter += 1
-        }
-        return internalScheduler.schedule(state, action: action)
-    }
+	let internalScheduler: SchedulerType
+	var scheduleCounter = 0
+	init(internalScheduler: SchedulerType) {
+		self.internalScheduler = internalScheduler
+	}
+	func schedule<StateType>(_ state: StateType, action: @escaping (StateType) -> Disposable) -> Disposable {
+		if state is ScheduledDisposable {
+			scheduleCounter += 1
+		}
+		return internalScheduler.schedule(state, action: action)
+	}
 }
 
 struct TestState : RxStateType {
@@ -171,29 +171,29 @@ class RxDataFlowTests: XCTestCase {
 		                                 maxHistoryItems: 10)
 		let completeExpectation = expectation(description: "Should change state")
 		
-        _ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
-            completeExpectation.fulfill()
-        })
+		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
+			completeExpectation.fulfill()
+		})
 		
 		for i in 0...10 {
 			store.dispatch(ChangeTextValueAction(newText: "New text \(i)"))
 		}
-        store.dispatch(CompletionAction())
+		store.dispatch(CompletionAction())
 		
 		waitForExpectations(timeout: 1, handler: nil)
 		
-        let expectedStateHistoryTextValues = ["New text 2",
-                                              "New text 3",
-                                              "New text 4",
-                                              "New text 5",
-                                              "New text 6",
-                                              "New text 7",
-                                              "New text 8",
-                                              "New text 9",
-                                              "New text 10",
-                                              "Completed"]
-        
-        XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
+		let expectedStateHistoryTextValues = ["New text 2",
+		                                      "New text 3",
+		                                      "New text 4",
+		                                      "New text 5",
+		                                      "New text 6",
+		                                      "New text 7",
+		                                      "New text 8",
+		                                      "New text 9",
+		                                      "New text 10",
+		                                      "Completed"]
+		
+		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
 	
 	

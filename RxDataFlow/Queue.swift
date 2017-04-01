@@ -11,8 +11,8 @@ import RxSwift
 public struct Queue<T> {
 	internal var array = [T?]()
 	internal var head = 0
-    
-    let currentItemSubject = PublishSubject<T>()
+	
+	let currentItemSubject = PublishSubject<T>()
 	
 	public var isEmpty: Bool {
 		return count == 0
@@ -40,7 +40,7 @@ public struct Queue<T> {
 			array.removeFirst(head)
 			head = 0
 		}
-        
+		
 		if let current = peek() {
 			currentItemSubject.onNext(current)
 		}

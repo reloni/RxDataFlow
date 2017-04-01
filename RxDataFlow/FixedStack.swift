@@ -54,7 +54,7 @@ struct FixedStack<T> {
 	}
 	
 	func peek() -> T? {
-        guard !isEmpty else { return nil }
-        return array.last!
+		guard !isEmpty else { return nil }
+		return array.last!
 	}
 }

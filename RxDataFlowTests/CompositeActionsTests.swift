@@ -21,9 +21,9 @@ class CompositeActions: XCTestCase {
 		})
 		
 		let action = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed"),
-		                                                       ChangeTextValueAction(newText: "Action 2 executed"),
-		                                                       ChangeTextValueAction(newText: "Action 3 executed"),
-		                                                       ChangeTextValueAction(newText: "Action 4 executed")])
+		                                         ChangeTextValueAction(newText: "Action 2 executed"),
+		                                         ChangeTextValueAction(newText: "Action 3 executed"),
+		                                         ChangeTextValueAction(newText: "Action 4 executed")])
 		store.dispatch(action)
 		store.dispatch(CompletionAction())
 		
@@ -84,10 +84,10 @@ class CompositeActions: XCTestCase {
 		})
 		
 		let action = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed"),
-		                                                       ChangeTextValueAction(newText: "Action 2 executed"),
-		                                                       ErrorAction(),
-		                                                       ChangeTextValueAction(newText: "Action 3 executed"),
-		                                                       ChangeTextValueAction(newText: "Action 4 executed")])
+		                                         ChangeTextValueAction(newText: "Action 2 executed"),
+		                                         ErrorAction(),
+		                                         ChangeTextValueAction(newText: "Action 3 executed"),
+		                                         ChangeTextValueAction(newText: "Action 4 executed")])
 		store.dispatch(action)
 		store.dispatch(CompletionAction())
 		
@@ -111,18 +111,18 @@ class CompositeActions: XCTestCase {
 		})
 		
 		let action1 = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed"),
-		                                                        ChangeTextValueAction(newText: "Action 2 executed"),
-		                                                        ChangeTextValueAction(newText: "Action 3 executed"),
-		                                                        ChangeTextValueAction(newText: "Action 4 executed")])
+		                                          ChangeTextValueAction(newText: "Action 2 executed"),
+		                                          ChangeTextValueAction(newText: "Action 3 executed"),
+		                                          ChangeTextValueAction(newText: "Action 4 executed")])
 		let action2 = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 5 executed"),
-		                                                        ChangeTextValueAction(newText: "Action 6 executed"),
-		                                                        ErrorAction(),
-		                                                        ChangeTextValueAction(newText: "Action 7 executed"),
-		                                                        ChangeTextValueAction(newText: "Action 8 executed")])
+		                                          ChangeTextValueAction(newText: "Action 6 executed"),
+		                                          ErrorAction(),
+		                                          ChangeTextValueAction(newText: "Action 7 executed"),
+		                                          ChangeTextValueAction(newText: "Action 8 executed")])
 		let action3 = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 9 executed"),
-		                                                        ChangeTextValueAction(newText: "Action 10 executed"),
-		                                                        ChangeTextValueAction(newText: "Action 11 executed"),
-		                                                        ChangeTextValueAction(newText: "Action 12 executed")])
+		                                          ChangeTextValueAction(newText: "Action 10 executed"),
+		                                          ChangeTextValueAction(newText: "Action 11 executed"),
+		                                          ChangeTextValueAction(newText: "Action 12 executed")])
 		store.dispatch(action1)
 		store.dispatch(action2)
 		store.dispatch(action3)
@@ -161,22 +161,22 @@ class CompositeActions: XCTestCase {
 		let scheduler2 = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let scheduler3 = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		
-        let action1 = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed", scheduler: scheduler1),
-		                                                       ChangeTextValueAction(newText: "Action 2 executed", scheduler: scheduler2),
-		                                                       EnumAction.inCustomScheduler(scheduler3, .just((TestState(text: "Action 3 executed")))),
-		                                                       ChangeTextValueAction(newText: "Action 4 executed"),
-		                                                       EnumAction.inMainScheduler(.just((TestState(text: "Action 5 executed"))))],
-		                               scheduler: topScheduler)
+		let action1 = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed", scheduler: scheduler1),
+		                                          ChangeTextValueAction(newText: "Action 2 executed", scheduler: scheduler2),
+		                                          EnumAction.inCustomScheduler(scheduler3, .just((TestState(text: "Action 3 executed")))),
+		                                          ChangeTextValueAction(newText: "Action 4 executed"),
+		                                          EnumAction.inMainScheduler(.just((TestState(text: "Action 5 executed"))))],
+		                                scheduler: topScheduler)
 		store.dispatch(action1)
-        
-        let action2 = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 6 executed", scheduler: nil),
-                                                  ChangeTextValueAction(newText: "Action 7 executed", scheduler: nil),
-                                                  EnumAction.inCustomScheduler(scheduler3, .just((TestState(text: "Action 8 executed")))),
-                                                  ChangeTextValueAction(newText: "Action 9 executed"),
-                                                  EnumAction.inMainScheduler(.just((TestState(text: "Action 10 executed"))))],
-                                        scheduler: nil)
-        store.dispatch(action2)
-        
+		
+		let action2 = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 6 executed", scheduler: nil),
+		                                          ChangeTextValueAction(newText: "Action 7 executed", scheduler: nil),
+		                                          EnumAction.inCustomScheduler(scheduler3, .just((TestState(text: "Action 8 executed")))),
+		                                          ChangeTextValueAction(newText: "Action 9 executed"),
+		                                          EnumAction.inMainScheduler(.just((TestState(text: "Action 10 executed"))))],
+		                                scheduler: nil)
+		store.dispatch(action2)
+		
 		store.dispatch(CompletionAction())
 		
 		waitForExpectations(timeout: 1, handler: nil)
@@ -240,11 +240,11 @@ class CompositeActions: XCTestCase {
 		}()
 		
 		let action = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed", scheduler: nil),
-		                                                       CustomDescriptorAction(scheduler: nil, descriptor: descriptor1),
-		                                                       ChangeTextValueAction(newText: "Action 3 executed", scheduler: nil),
-		                                                       ChangeTextValueAction(newText: "Action 4 executed"),
-		                                                       EnumAction.inMainScheduler(.just((TestState(text: "Action 5 executed")))),
-		                                                       CustomDescriptorAction(scheduler: nil, descriptor: descriptor2),])
+		                                         CustomDescriptorAction(scheduler: nil, descriptor: descriptor1),
+		                                         ChangeTextValueAction(newText: "Action 3 executed", scheduler: nil),
+		                                         ChangeTextValueAction(newText: "Action 4 executed"),
+		                                         EnumAction.inMainScheduler(.just((TestState(text: "Action 5 executed")))),
+		                                         CustomDescriptorAction(scheduler: nil, descriptor: descriptor2),])
 		store.dispatch(action)
 		store.dispatch(CompletionAction())
 		
