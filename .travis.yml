@@ -6,8 +6,8 @@ env:
   #- WORKSPACE=
   - PROJECT=RxDataFlow.xcodeproj
   - FRAMEWORK_SCHEME=RxDataFlow-iOS
-  - SDK=iphonesimulator10.2
-  - DESTINATION_PLATFORM='platform=iOS Simulator,name=iPhone 6s,OS=10.1'
+  - SDK=iphonesimulator
+  - DESTINATION_PLATFORM='platform=iOS Simulator,name=iPhone 6s,OS=10.3'
 
 before_install:
   - SIMULATOR_ID=$(xcrun instruments -s | grep -o "iPhone 6s (10.1) \[.*\]" | grep -o "\[.*\]" | sed "s/^\[\(.*\)\]$/\1/")
