@@ -10,98 +10,51 @@ import XCTest
 import RxSwift
 @testable import RxDataFlow
 
-final class TestScheduler : ImmediateSchedulerType {
-	let internalScheduler: SchedulerType
-	var scheduleCounter = 0
-	init(internalScheduler: SchedulerType) {
-		self.internalScheduler = internalScheduler
-	}
-	func schedule<StateType>(_ state: StateType, action: @escaping (StateType) -> Disposable) -> Disposable {
-		if state is ScheduledDisposable {
-			scheduleCounter += 1
-		}
-		return internalScheduler.schedule(state, action: action)
-	}
-}
-
-struct TestState : RxStateType {
-	let text: String
-}
-
-struct ChangeTextValueAction : RxActionType {
-	let newText: String
-	var scheduler: ImmediateSchedulerType?
-}
-
-extension ChangeTextValueAction {
-	init(newText: String) {
-		self.init(newText: newText, scheduler: nil)
-	}
-}
-
-struct CustomDescriptorAction : RxActionType {
-	var scheduler: ImmediateSchedulerType?
-	let descriptor: Observable<RxStateType>
-}
-
-enum EnumAction : RxActionType {
-	case inMainScheduler(Observable<RxStateType>)
-	case inCustomScheduler(ImmediateSchedulerType, Observable<RxStateType>)
-	
-	var scheduler: ImmediateSchedulerType? {
-		switch self {
-		case .inMainScheduler: return MainScheduler.instance
-		case .inCustomScheduler(let scheduler, _): return scheduler
-		}
-	}
-}
-
-struct CompletionAction : RxActionType {
-	var scheduler: ImmediateSchedulerType?
-}
-
-enum TestError : Error {
-	case someError
-}
-
-struct ErrorAction : RxActionType {
-	var scheduler: ImmediateSchedulerType?
-}
-
-struct TestStoreReducer : RxReducerType {
-	func handle(_ action: RxActionType, flowController: RxDataFlowControllerType) -> Observable<RxStateType> {
-		switch action {
-		case let a as ChangeTextValueAction: return changeTextValue(newText: a.newText)
-		case _ as CompletionAction: return completion()
-		case let a as CustomDescriptorAction: return a.descriptor
-		case _ as ErrorAction: return error()
-		case let enumAction as EnumAction:
-			switch enumAction {
-			case .inMainScheduler(let descriptor):
-				XCTAssertTrue(Thread.isMainThread)
-				return descriptor
-			case .inCustomScheduler(_, let descriptor):
-				XCTAssertFalse(Thread.isMainThread)
-				return descriptor
-			}
-		default: return Observable.empty()
-		}
-	}
-	
-	func changeTextValue(newText: String) -> Observable<RxStateType> {
-		return .just(TestState(text: newText))
-	}
-	
-	func error() -> Observable<RxStateType> {
-		return .error(TestError.someError)
-	}
-	
-	func completion() -> Observable<RxStateType> {
-		return .just(TestState(text: "Completed"))
-	}
-}
-
 class RxDataFlowTests: XCTestCase {
+	func testDeinit() {
+		var store: TestFlowController! = TestFlowController(reducer: TestStoreReducer(),
+		                               initialState: TestState(text: "Initial value"))
+		
+		let deinitExpectation = expectation(description: "Should deinit")
+		
+		var stateHistory: [String]?
+		store.onDeinit = {
+			stateHistory = $0.stateStack.array.flatMap { $0 }.map { $0.state.text }
+			deinitExpectation.fulfill()
+		}
+		
+		let completeExpectation = expectation(description: "Should not fulfill this expectation")
+		
+		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { _ in
+			completeExpectation.fulfill()
+		})
+		
+		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
+		
+		let action1 = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (1)")).delay(0.1, scheduler: delayScheduler))
+		let action2 = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (2)")).delay(0.3, scheduler: delayScheduler))
+		let action3 = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (3)")).delay(0.7, scheduler: delayScheduler))
+		let action4 = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (4)")).delay(1.0, scheduler: delayScheduler))
+		
+		store.dispatch(action1)
+		store.dispatch(action2)
+		store.dispatch(action3)
+		store.dispatch(action4)
+		store.dispatch(CompletionAction())
+		
+		DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.3) {
+			store = nil
+		}
+		
+		let deinitResult = XCTWaiter().wait(for: [deinitExpectation], timeout: 1)
+		let completeResult = XCTWaiter().wait(for: [completeExpectation], timeout: 3)
+		
+		XCTAssertEqual(deinitResult, .completed)
+		XCTAssertEqual(completeResult, .timedOut)
+		XCTAssertNotNil(stateHistory)
+		XCTAssertTrue(stateHistory?.count ?? 5 < 5)
+	}
+	
 	func testInitialState() {
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
 		                                 initialState: TestState(text: "Initial value"))
