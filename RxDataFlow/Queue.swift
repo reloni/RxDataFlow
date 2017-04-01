@@ -22,10 +22,6 @@ public struct Queue<T> {
 		return array.count - head
 	}
 	
-	public mutating func removeAll() {
-		array.removeAll()
-	}
-	
 	public mutating func enqueue(_ element: T) {
 		array.append(element)
 		if count == 1 {
