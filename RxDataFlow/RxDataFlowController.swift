@@ -84,14 +84,14 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 	}
 		
 	private func subscribe() {
-		currentStateSubject.skip(1).subscribe(onNext: { [weak self] newState in self?.stateStack.push(newState) }).addDisposableTo(bag)
+		currentStateSubject.skip(1).subscribe(onNext: { [weak self] newState in self?.stateStack.push(newState) }).disposed(by: bag)
 		
 		actionsQueue.currentItemSubject.observeOn(scheduler)
 			.flatMap { [weak self] action -> Observable<Void> in
 				guard let object = self else { return Observable.empty() }
 				
 				return object.observe(action: action)
-			}.subscribe().addDisposableTo(bag)
+			}.subscribe().disposed(by: bag)
 	}
 	
 	private func observe(action: RxActionType) -> Observable<Void> {
@@ -152,6 +152,6 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 				params.1.actionsQueue.enqueue(params.0)
 				return Disposables.create()
 				}.subscribe()
-			}.addDisposableTo(bag)
+			}.disposed(by: bag)
 	}
 }
