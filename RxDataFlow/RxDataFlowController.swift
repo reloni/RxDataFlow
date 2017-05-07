@@ -88,9 +88,7 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 		
 		actionsQueue.currentItemSubject.observeOn(scheduler)
 			.flatMap { [weak self] action -> Observable<Void> in
-				guard let object = self else { return Observable.empty() }
-				
-				return object.observe(action: action)
+				return self?.observe(action: action) ?? .empty()
 			}.subscribe().disposed(by: bag)
 	}
 	

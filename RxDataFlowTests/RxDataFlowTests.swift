@@ -11,6 +11,7 @@ import RxSwift
 @testable import RxDataFlow
 
 class RxDataFlowTests: XCTestCase {
+	/// Test FlowController will deinit. Before deinit FlowController will serve all actions in dispatch queue
 	func testDeinit() {
 		var store: TestFlowController! = TestFlowController(reducer: TestStoreReducer(),
 		                               initialState: TestState(text: "Initial value"))
@@ -42,17 +43,17 @@ class RxDataFlowTests: XCTestCase {
 		store.dispatch(action4)
 		store.dispatch(CompletionAction())
 		
-		DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.3) {
+		DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.01) {
 			store = nil
 		}
 		
-		let deinitResult = XCTWaiter().wait(for: [deinitExpectation], timeout: 1)
+		let deinitResult = XCTWaiter().wait(for: [deinitExpectation], timeout: 3)
 		let completeResult = XCTWaiter().wait(for: [completeExpectation], timeout: 3)
 		
 		XCTAssertEqual(deinitResult, .completed)
-		XCTAssertEqual(completeResult, .timedOut)
+		XCTAssertEqual(completeResult, .completed)
 		XCTAssertNotNil(stateHistory)
-		XCTAssertTrue(stateHistory?.count ?? 5 < 5)
+		XCTAssertEqual(6, stateHistory?.count)
 	}
 	
 	func testInitialState() {
