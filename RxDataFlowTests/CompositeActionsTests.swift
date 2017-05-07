@@ -13,7 +13,8 @@ import RxSwift
 class CompositeActions: XCTestCase {
 	func testCompositeAction() {
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
-		                                 initialState: TestState(text: "Initial value"))
+		                                 initialState: TestState(text: "Initial value"),
+		                                 maxHistoryItems: 50)
 		
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
@@ -42,7 +43,8 @@ class CompositeActions: XCTestCase {
 	
 	func testCorrectSetByAction() {
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
-		                                 initialState: TestState(text: "Initial value"))
+		                                 initialState: TestState(text: "Initial value"),
+		                                 maxHistoryItems: 50)
 		
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
@@ -78,7 +80,8 @@ class CompositeActions: XCTestCase {
 	
 	func testCompositeActionStopIfErrorOccurred() {
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
-		                                 initialState: TestState(text: "Initial value"))
+		                                 initialState: TestState(text: "Initial value"),
+		                                 maxHistoryItems: 50)
 		
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
@@ -106,7 +109,8 @@ class CompositeActions: XCTestCase {
 	
 	func testMultipleCompositeActions() {
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
-		                                 initialState: TestState(text: "Initial value"))
+		                                 initialState: TestState(text: "Initial value"),
+		                                 maxHistoryItems: 50)
 		
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
@@ -153,6 +157,7 @@ class CompositeActions: XCTestCase {
 	func testInvokeChildActionsInCorrectScheduler() {
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
 		                                 initialState: TestState(text: "Initial value"),
+		                                 maxHistoryItems: 50,
 		                                 scheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)))
 		
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
@@ -210,6 +215,7 @@ class CompositeActions: XCTestCase {
 	func testInvokeChildActionsInCorrectOrder() {
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
 		                                 initialState: TestState(text: "Initial value"),
+		                                 maxHistoryItems: 50,
 		                                 scheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)))
 		
 		let completeExpectation = expectation(description: "Should perform all non-error actions")

@@ -55,7 +55,7 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 	
 	public convenience init(reducer: RxReducerType,
 	                        initialState: State,
-	                        maxHistoryItems: UInt = 50,
+	                        maxHistoryItems: UInt = 1,
 	                        dispatchAction: RxActionType? = nil) {
 		self.init(reducer: reducer,
 		          initialState: initialState,

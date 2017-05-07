@@ -11,10 +11,11 @@ import RxSwift
 @testable import RxDataFlow
 
 class RxDataFlowTests: XCTestCase {
-	/// Test FlowController will deinit. Before deinit FlowController will serve all actions in dispatch queue
+	/// Test FlowController deinit if there is no actions to dispatch
 	func testDeinit() {
 		var store: TestFlowController! = TestFlowController(reducer: TestStoreReducer(),
-		                               initialState: TestState(text: "Initial value"))
+		                               initialState: TestState(text: "Initial value"),
+		                               maxHistoryItems: 50)
 		
 		let deinitExpectation = expectation(description: "Should deinit")
 		
@@ -43,12 +44,12 @@ class RxDataFlowTests: XCTestCase {
 		store.dispatch(action4)
 		store.dispatch(CompletionAction())
 		
-		DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.01) {
-			store = nil
-		}
+		let completeResult = XCTWaiter().wait(for: [completeExpectation], timeout: 3)
+		
+		store = nil
 		
 		let deinitResult = XCTWaiter().wait(for: [deinitExpectation], timeout: 3)
-		let completeResult = XCTWaiter().wait(for: [completeExpectation], timeout: 3)
+		
 		
 		XCTAssertEqual(deinitResult, .completed)
 		XCTAssertEqual(completeResult, .completed)
@@ -56,9 +57,53 @@ class RxDataFlowTests: XCTestCase {
 		XCTAssertEqual(6, stateHistory?.count)
 	}
 	
+	/// Test FlowController stop dispatching actions after deinit
+	func testDeinit_2() {
+		var store: TestFlowController! = TestFlowController(reducer: TestStoreReducer(),
+		                                                    initialState: TestState(text: "Initial value"),
+		                                                    maxHistoryItems: 100)
+		
+		let deinitExpectation = expectation(description: "Should deinit")
+		
+		var stateHistory: [String]?
+		store.onDeinit = {
+			stateHistory = $0.stateStack.array.flatMap { $0 }.map { $0.state.text }
+			deinitExpectation.fulfill()
+		}
+		
+		let completeExpectation = expectation(description: "Should not fulfill this expectation")
+		
+		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { _ in
+			completeExpectation.fulfill()
+		})
+		
+		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
+		
+		for i in 0..<store.stateStack.capacity {
+			let action = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (\(i))")).delay(0.001, scheduler: delayScheduler))
+			store.dispatch(action)
+		}
+		
+		store.dispatch(CompletionAction())
+		
+		DispatchQueue.main.asyncAfter(deadline: .now() + 0.001) {
+			store = nil
+		}
+		
+		let completeResult = XCTWaiter().wait(for: [completeExpectation], timeout: 3)
+		let deinitResult = XCTWaiter().wait(for: [deinitExpectation], timeout: 3)
+		
+		
+		XCTAssertEqual(deinitResult, .completed)
+		XCTAssertEqual(completeResult, .timedOut)
+		XCTAssertNotNil(stateHistory)
+		XCTAssertTrue(stateHistory?.count ?? 999 < 100)
+	}
+	
 	func testInitialState() {
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
-		                                 initialState: TestState(text: "Initial value"))
+		                                 initialState: TestState(text: "Initial value"),
+		                                 maxHistoryItems: 50)
 		XCTAssertEqual(store.currentState.state.text, "Initial value")
 		XCTAssertNotNil(store.currentState.setBy as? RxInitializationAction)
 		
@@ -69,7 +114,8 @@ class RxDataFlowTests: XCTestCase {
 	
 	func testReturnCurrentStateOnSubscribe() {
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
-		                                 initialState: TestState(text: "Initial value"))
+		                                 initialState: TestState(text: "Initial value"),
+		                                 maxHistoryItems: 50)
 		let completeExpectation = expectation(description: "Should return initial state")
 		
 		_ = store.state.subscribe(onNext: { next in
@@ -85,6 +131,7 @@ class RxDataFlowTests: XCTestCase {
 	func testDispatchActionAfterInitialization() {
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
 		                                 initialState: TestState(text: "Initial value"),
+		                                 maxHistoryItems: 50,
 		                                 dispatchAction: ChangeTextValueAction(newText: "Change on init"))
 		
 		let completeExpectation = expectation(description: "Should dispatch action after initialization")
@@ -103,7 +150,8 @@ class RxDataFlowTests: XCTestCase {
 	
 	func testPerformAction() {
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
-		                                 initialState: TestState(text: "Initial value"))
+		                                 initialState: TestState(text: "Initial value"),
+		                                 maxHistoryItems: 50)
 		let completeExpectation = expectation(description: "Should change state")
 		
 		_ = store.state.subscribe(onNext: { next in
@@ -157,7 +205,8 @@ class RxDataFlowTests: XCTestCase {
 	
 	func testPorformActionAndPropagateError() {
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
-		                                 initialState: TestState(text: "Initial value"))
+		                                 initialState: TestState(text: "Initial value"),
+		                                 maxHistoryItems: 50)
 		let errorExpectation = expectation(description: "Should rise error")
 		
 		_ = store.errors.subscribe(onNext: { e in
@@ -179,7 +228,8 @@ class RxDataFlowTests: XCTestCase {
 	
 	func testContinueWorkAfterErrorAction() {
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
-		                                 initialState: TestState(text: "Initial value"))
+		                                 initialState: TestState(text: "Initial value"),
+		                                 maxHistoryItems: 50)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
 		var changeTextValueActionCount = 0
@@ -312,7 +362,8 @@ class RxDataFlowTests: XCTestCase {
 	
 	func testDispatch_1() {
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
-		                                 initialState: TestState(text: "Initial value"))
+		                                 initialState: TestState(text: "Initial value"),
+		                                 maxHistoryItems: 50)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
