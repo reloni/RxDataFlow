@@ -328,7 +328,11 @@ class ConcurrentActionTests: XCTestCase {
 			completeExpectation.fulfill()
 		})
 		
-		_ = store.errors.subscribe(onNext: { _ in errorExpectation.fulfill() })
+		_ = store.errors.subscribe(onNext: { error in
+			XCTAssertTrue(error.action is ConcurrentErrorAction)
+			XCTAssertTrue((error.error as? TestError) == TestError.someError)
+			errorExpectation.fulfill()
+		})
 		
 		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
 		

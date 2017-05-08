@@ -75,6 +75,7 @@ struct CompletionAction : RxActionType {
 
 enum TestError : Error {
 	case someError
+	case otherError
 }
 
 struct ErrorAction : RxActionType {

@@ -90,7 +90,11 @@ class CompositeActions: XCTestCase {
 			completeExpectation.fulfill()
 		})
 		
-		_ = store.errors.subscribe(onNext: { _ in errorExpectation.fulfill() })
+		_ = store.errors.subscribe(onNext: { error in
+			XCTAssertTrue(error.action is ErrorAction)
+			XCTAssertTrue((error.error as? TestError) == TestError.someError)
+			errorExpectation.fulfill()
+		})
 		
 		let action = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed"),
 		                                         ChangeTextValueAction(newText: "Action 2 executed"),

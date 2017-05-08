@@ -45,6 +45,10 @@ public struct RxInitializationAction : RxActionType {
 	public var scheduler: ImmediateSchedulerType?
 }
 
+fileprivate enum FlowControllerError: Error {
+	case compositeActionError(erroredAction: RxActionType, error: Error)
+}
+
 
 public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType {
 	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject.asObservable().observeOn(serialActionScheduler) }
@@ -96,6 +100,14 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 		}
 	}
 	
+	private func propagate(error: Error, from action: RxActionType) {
+		if case FlowControllerError.compositeActionError(let data) = error {
+			errorsSubject.onNext((state: currentState.state, action: data.erroredAction, error: data.error))
+		} else {
+			errorsSubject.onNext((state: currentState.state, action: action, error: error))
+		}
+	}
+	
 	private func scheduler(for action: RxActionType, owner: RxCompositeAction? = nil) -> ImmediateSchedulerType {
 		let actionScheduler =  action.scheduler ?? owner?.scheduler
 		return actionScheduler ?? (action.isSerial ? serialActionScheduler : concurrentActionScheduler)
@@ -124,10 +136,7 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 			
 			actionDescriptor
 				.do(onNext: { [weak self] in self?.currentStateSubject.onNext((setBy: $0.setBy, state: $0.state as! State)) },
-				    onError: { [weak self] in
-							guard let object = self else { return }
-							object.errorsSubject.onNext((state: object.currentState.state, action: action, error: $0))
-				})
+				    onError: { [weak self] in self?.propagate(error: $0, from: action) })
 				.subscribeOn(action.scheduler ?? concurrentActionScheduler)
 				.subscribe()
 				.disposed(by: bag)
@@ -148,10 +157,7 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 		
 		return schedule(actionDescriptor: descriptor, for: action)
 			.do(onNext: { [weak self] in self?.currentStateSubject.onNext((setBy: $0.setBy, state: $0.state as! State)) },
-			    onError: { [weak self] in
-						guard let object = self else { return }
-						object.errorsSubject.onNext((state: object.currentState.state, action: action, error: $0))
-					},
+			    onError: { [weak self] in self?.propagate(error: $0, from: action) },
 			    onDispose: { [weak self] _ in _ = self?.actionsQueue.dequeue() })
 			.flatMap { result -> Observable<RxStateType?> in .just(result.state) }
 			.catchErrorJustReturn(nil)
@@ -166,8 +172,9 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 			
 			let disposable = compositeQueue.currentItemSubject.observeOn(object.serialActionScheduler).flatMap { action -> Observable<RxStateType> in
 				return Observable.create { _ in
-					let descriptor = object.descriptor(for: action, owner: compositeAction)
-					
+					let descriptor = object.descriptor(for: action, owner: compositeAction).catchError { error -> Observable<(setBy: RxActionType, state: RxStateType)> in
+						return .error(FlowControllerError.compositeActionError(erroredAction: action, error: error))
+					}
 						let subscription = object.schedule(actionDescriptor: descriptor, for: action)
 						.do(onNext: { observer.onNext((setBy: $0.setBy, state: $0.state as! State)) },
 						    onError: { observer.onError($0) },
