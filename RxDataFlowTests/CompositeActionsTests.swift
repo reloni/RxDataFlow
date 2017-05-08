@@ -62,7 +62,7 @@ class CompositeActions: XCTestCase {
 		})
 		
 		let action = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed"),
-		                                         CustomDescriptorAction(scheduler: nil, descriptor: .just((TestState(text: "Action 2 executed"))))])
+		                                         CustomDescriptorAction(scheduler: nil, descriptor: .just((TestState(text: "Action 2 executed"))), isSerial: true)])
 		store.dispatch(action)
 		store.dispatch(CompletionAction())
 		
@@ -79,13 +79,21 @@ class CompositeActions: XCTestCase {
 	}
 	
 	func testCompositeActionStopIfErrorOccurred() {
+		
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 50)
-		
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
+		let errorExpectation = expectation(description: "Should throw error")
+		
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
 			completeExpectation.fulfill()
+		})
+		
+		_ = store.errors.subscribe(onNext: { error in
+			XCTAssertTrue(error.action is ErrorAction)
+			XCTAssertTrue((error.error as? TestError) == TestError.someError)
+			errorExpectation.fulfill()
 		})
 		
 		let action = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed"),
@@ -97,7 +105,10 @@ class CompositeActions: XCTestCase {
 		store.dispatch(CompletionAction())
 		
 		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1)
+		let errorResult = XCTWaiter.wait(for: [errorExpectation], timeout: 1.5)
+		
 		XCTAssertEqual(result, .completed)
+		XCTAssertEqual(errorResult, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
 		                                      "Action 1 executed",
@@ -158,7 +169,8 @@ class CompositeActions: XCTestCase {
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 50,
-		                                 scheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)))
+		                                 serialActionScheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)),
+		                                 concurrentActionScheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)))
 		
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
@@ -208,7 +220,7 @@ class CompositeActions: XCTestCase {
 		XCTAssertEqual(1, scheduler1.scheduleCounter)
 		XCTAssertEqual(1, scheduler2.scheduleCounter)
 		XCTAssertEqual(2, scheduler3.scheduleCounter)
-		XCTAssertEqual(4, (store.scheduler as! TestScheduler).scheduleCounter)
+		XCTAssertEqual(4, (store.serialActionScheduler as! TestScheduler).scheduleCounter)
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
 	
@@ -216,7 +228,8 @@ class CompositeActions: XCTestCase {
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 50,
-		                                 scheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)))
+		                                 serialActionScheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)),
+		                                 concurrentActionScheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)))
 		
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
@@ -249,11 +262,11 @@ class CompositeActions: XCTestCase {
 		}()
 		
 		let action = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed", scheduler: nil),
-		                                         CustomDescriptorAction(scheduler: nil, descriptor: descriptor1),
+		                                         CustomDescriptorAction(scheduler: nil, descriptor: descriptor1, isSerial: true),
 		                                         ChangeTextValueAction(newText: "Action 3 executed", scheduler: nil),
 		                                         ChangeTextValueAction(newText: "Action 4 executed"),
 		                                         EnumAction.inMainScheduler(.just((TestState(text: "Action 5 executed")))),
-		                                         CustomDescriptorAction(scheduler: nil, descriptor: descriptor2),])
+		                                         CustomDescriptorAction(scheduler: nil, descriptor: descriptor2, isSerial: true)])
 		store.dispatch(action)
 		store.dispatch(CompletionAction())
 		
