@@ -458,7 +458,10 @@ class RxDataFlowTests: XCTestCase {
 	func testDispatchInDefaultScheduler() {
 		let storeScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
-		                                 initialState: TestState(text: "Initial value"), maxHistoryItems: 8, scheduler: storeScheduler)
+		                                 initialState: TestState(text: "Initial value"),
+		                                 maxHistoryItems: 8,
+		                                 serialActionScheduler: storeScheduler,
+		                                 concurrentActionScheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)))
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
@@ -493,7 +496,10 @@ class RxDataFlowTests: XCTestCase {
 	func testDispatchInMainScheduer() {
 		let storeScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
-		                                 initialState: TestState(text: "Initial value"), maxHistoryItems: 8, scheduler: storeScheduler)
+		                                 initialState: TestState(text: "Initial value"),
+		                                 maxHistoryItems: 8,
+		                                 serialActionScheduler: storeScheduler,
+		                                 concurrentActionScheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)))
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
