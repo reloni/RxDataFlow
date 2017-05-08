@@ -37,6 +37,7 @@ struct TestState : RxStateType {
 }
 
 struct ChangeTextValueAction : RxActionType {
+	let isSerial = true
 	let newText: String
 	var scheduler: ImmediateSchedulerType?
 }
@@ -50,11 +51,14 @@ extension ChangeTextValueAction {
 struct CustomDescriptorAction : RxActionType {
 	var scheduler: ImmediateSchedulerType?
 	let descriptor: Observable<RxStateType>
+	let isSerial: Bool
 }
 
 enum EnumAction : RxActionType {
 	case inMainScheduler(Observable<RxStateType>)
 	case inCustomScheduler(ImmediateSchedulerType, Observable<RxStateType>)
+	
+	var isSerial: Bool { return true }
 	
 	var scheduler: ImmediateSchedulerType? {
 		switch self {
@@ -66,6 +70,7 @@ enum EnumAction : RxActionType {
 
 struct CompletionAction : RxActionType {
 	var scheduler: ImmediateSchedulerType?
+	let isSerial: Bool = true
 }
 
 enum TestError : Error {
@@ -73,6 +78,7 @@ enum TestError : Error {
 }
 
 struct ErrorAction : RxActionType {
+	let isSerial = true
 	var scheduler: ImmediateSchedulerType?
 }
 

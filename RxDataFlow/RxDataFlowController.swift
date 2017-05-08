@@ -21,13 +21,13 @@ public protocol RxReducerType {
 
 public protocol RxActionType {
 	var scheduler: ImmediateSchedulerType? { get }
+	var isSerial: Bool { get }
 }
-
-public protocol RxConcurrentActionType: RxActionType { }
 
 public struct RxCompositeAction : RxActionType {
 	public let scheduler: ImmediateSchedulerType?
 	public let actions: [RxActionType]
+	public let isSerial = true
 	public init(actions: [RxActionType], scheduler: ImmediateSchedulerType? = nil) {
 		self.actions = actions
 		self.scheduler = scheduler
@@ -35,6 +35,7 @@ public struct RxCompositeAction : RxActionType {
 }
 
 public struct RxInitializationAction : RxActionType {
+	public let isSerial = true
 	public var scheduler: ImmediateSchedulerType?
 }
 
@@ -98,18 +99,39 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 			}.subscribe().disposed(by: bag)
 	}
 	
+	private func schedule(actionDescriptor: Observable<(setBy: RxActionType, state: RxStateType)>, for action: RxActionType)
+		-> Observable<(setBy: RxActionType, state: RxStateType)> {
+			guard !action.isSerial else { return actionDescriptor }
+			
+			actionDescriptor
+				.do(onNext: { [weak self] in self?.currentStateSubject.onNext((setBy: $0.setBy, state: $0.state as! State)) },
+				    onError: { [weak self] in
+							guard let object = self else { return }
+							object.errorsSubject.onNext((state: object.currentState.state, action: action, error: $0))
+				})
+				.subscribeOn(action.scheduler ?? concurrentActionScheduler)
+				.subscribe()
+				.disposed(by: bag)
+			
+			return .empty()
+	}
+	
 	private func observe(action: RxActionType) -> Observable<Void> {
-		let handle: Observable<(setBy: RxActionType, state: RxStateType)> = { [weak self] in
+		let descriptor: Observable<(setBy: RxActionType, state: RxStateType)> = { [weak self] in
 			guard let object = self else { return .empty() }
+			
+			let schedulerForAction = action.isSerial ? object.serialActionScheduler : object.concurrentActionScheduler
+			
 			guard let compositeAction = action as? RxCompositeAction else {
-				return Observable<RxActionType>.from([action], scheduler: action.scheduler ?? object.serialActionScheduler)
-					.flatMap { act in object.reducer.handle(act, flowController: object).subscribeOn(act.scheduler ?? object.serialActionScheduler) }
+				return Observable<RxActionType>.from([action], scheduler: action.scheduler ?? schedulerForAction)
+					.flatMap { act in object.reducer.handle(act, flowController: object).subscribeOn(act.scheduler ?? schedulerForAction) }
 					.flatMap { result -> Observable<(setBy: RxActionType, state: RxStateType)> in return .just((setBy: action, state: result)) }
 			}
+			
 			return object.observe(compositeAction: compositeAction)
 		}()
 		
-		return handle
+		return schedule(actionDescriptor: descriptor, for: action)
 			.do(onNext: { [weak self] in self?.currentStateSubject.onNext((setBy: $0.setBy, state: $0.state as! State)) },
 			    onError: { [weak self] in
 						guard let object = self else { return }
@@ -121,7 +143,7 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 			.flatMap { _ in return Observable<Void>.just() }
 	}
 	
-	func observe(compositeAction: RxCompositeAction) -> Observable<(setBy: RxActionType, state: RxStateType)> {
+	private func observe(compositeAction: RxCompositeAction) -> Observable<(setBy: RxActionType, state: RxStateType)> {
 		return Observable.create { [weak self] observer in
 			guard let object = self else { return Disposables.create() }
 			
@@ -140,7 +162,7 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 						.subscribe()
 					return Disposables.create { subscribsion.dispose() }
 				}
-				}.subscribe()
+			}.subscribe()
 			
 			for a in compositeAction.actions { compositeQueue.enqueue(a) }
 			

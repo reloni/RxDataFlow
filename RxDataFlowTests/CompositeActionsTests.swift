@@ -62,7 +62,7 @@ class CompositeActions: XCTestCase {
 		})
 		
 		let action = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed"),
-		                                         CustomDescriptorAction(scheduler: nil, descriptor: .just((TestState(text: "Action 2 executed"))))])
+		                                         CustomDescriptorAction(scheduler: nil, descriptor: .just((TestState(text: "Action 2 executed"))), isSerial: true)])
 		store.dispatch(action)
 		store.dispatch(CompletionAction())
 		
@@ -251,11 +251,11 @@ class CompositeActions: XCTestCase {
 		}()
 		
 		let action = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed", scheduler: nil),
-		                                         CustomDescriptorAction(scheduler: nil, descriptor: descriptor1),
+		                                         CustomDescriptorAction(scheduler: nil, descriptor: descriptor1, isSerial: true),
 		                                         ChangeTextValueAction(newText: "Action 3 executed", scheduler: nil),
 		                                         ChangeTextValueAction(newText: "Action 4 executed"),
 		                                         EnumAction.inMainScheduler(.just((TestState(text: "Action 5 executed")))),
-		                                         CustomDescriptorAction(scheduler: nil, descriptor: descriptor2),])
+		                                         CustomDescriptorAction(scheduler: nil, descriptor: descriptor2, isSerial: true)])
 		store.dispatch(action)
 		store.dispatch(CompletionAction())
 		

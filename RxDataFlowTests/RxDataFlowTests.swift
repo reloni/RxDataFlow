@@ -33,10 +33,10 @@ class RxDataFlowTests: XCTestCase {
 		
 		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
 		
-		let action1 = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (1)")).delay(0.1, scheduler: delayScheduler))
-		let action2 = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (2)")).delay(0.3, scheduler: delayScheduler))
-		let action3 = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (3)")).delay(0.7, scheduler: delayScheduler))
-		let action4 = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (4)")).delay(1.0, scheduler: delayScheduler))
+		let action1 = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (1)")).delay(0.1, scheduler: delayScheduler), isSerial: true)
+		let action2 = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (2)")).delay(0.3, scheduler: delayScheduler), isSerial: true)
+		let action3 = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (3)")).delay(0.7, scheduler: delayScheduler), isSerial: true)
+		let action4 = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (4)")).delay(1.0, scheduler: delayScheduler), isSerial: true)
 		
 		store.dispatch(action1)
 		store.dispatch(action2)
@@ -80,7 +80,7 @@ class RxDataFlowTests: XCTestCase {
 		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
 		
 		for i in 0..<store.stateStack.capacity {
-			let action = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (\(i))")).delay(0.001, scheduler: delayScheduler))
+			let action = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (\(i))")).delay(0.001, scheduler: delayScheduler), isSerial: true)
 			store.dispatch(action)
 		}
 		
@@ -284,10 +284,10 @@ class RxDataFlowTests: XCTestCase {
 					return CompletionAction()
 				} else if i % 3 == 0 {
 					let descriptor = Observable<RxStateType>.error(TestError.someError).delaySubscription(after, scheduler: delayScheduler)
-					return CustomDescriptorAction(scheduler: delayScheduler, descriptor: descriptor)
+					return CustomDescriptorAction(scheduler: delayScheduler, descriptor: descriptor, isSerial: true)
 				} else {
 					let descriptor = Observable<RxStateType>.just(TestState(text: "Action \(i) executed")).delaySubscription(after, scheduler: delayScheduler)
-					return CustomDescriptorAction(scheduler: delayScheduler, descriptor: descriptor)
+					return CustomDescriptorAction(scheduler: delayScheduler, descriptor: descriptor, isSerial: true)
 				}
 			}()
 			
@@ -342,8 +342,8 @@ class RxDataFlowTests: XCTestCase {
 		}()
 		
 		store.dispatch(ChangeTextValueAction(newText: "Action 1 executed"))
-		store.dispatch(CustomDescriptorAction(scheduler: nil, descriptor: descriptor1))
-		store.dispatch(CustomDescriptorAction(scheduler: nil, descriptor: descriptor2))
+		store.dispatch(CustomDescriptorAction(scheduler: nil, descriptor: descriptor1, isSerial: true))
+		store.dispatch(CustomDescriptorAction(scheduler: nil, descriptor: descriptor2, isSerial: true))
 		store.dispatch(ChangeTextValueAction(newText: "Action 4 executed"))
 		store.dispatch(CompletionAction())
 		
@@ -407,7 +407,7 @@ class RxDataFlowTests: XCTestCase {
 				return Disposables.create()
 			}
 		}()
-		let action1 = CustomDescriptorAction(scheduler: action1Scheduler, descriptor: descriptor)
+		let action1 = CustomDescriptorAction(scheduler: action1Scheduler, descriptor: descriptor, isSerial: true)
 		store.dispatch(action1)
 		store.dispatch(CompletionAction())
 		
@@ -433,9 +433,9 @@ class RxDataFlowTests: XCTestCase {
 		
 		let actionScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		
-		let action1 = CustomDescriptorAction(scheduler: actionScheduler, descriptor: .just(TestState(text: "Action 1 executed")))
-		let action2 = CustomDescriptorAction(scheduler: actionScheduler, descriptor: .just(TestState(text: "Action 2 executed")))
-		let action3 = CustomDescriptorAction(scheduler: actionScheduler, descriptor: .just(TestState(text: "Action 3 executed")))
+		let action1 = CustomDescriptorAction(scheduler: actionScheduler, descriptor: .just(TestState(text: "Action 1 executed")), isSerial: true)
+		let action2 = CustomDescriptorAction(scheduler: actionScheduler, descriptor: .just(TestState(text: "Action 2 executed")), isSerial: true)
+		let action3 = CustomDescriptorAction(scheduler: actionScheduler, descriptor: .just(TestState(text: "Action 3 executed")), isSerial: true)
 		
 		store.dispatch(action1)
 		store.dispatch(action2)
@@ -468,11 +468,11 @@ class RxDataFlowTests: XCTestCase {
 			completeExpectation.fulfill()
 		})
 		
-		let action1 = CustomDescriptorAction(scheduler: nil, descriptor: .just(TestState(text: "Action 1 executed")))
-		let action2 = CustomDescriptorAction(scheduler: nil, descriptor: .just(TestState(text: "Action 2 executed")))
+		let action1 = CustomDescriptorAction(scheduler: nil, descriptor: .just(TestState(text: "Action 1 executed")), isSerial: true)
+		let action2 = CustomDescriptorAction(scheduler: nil, descriptor: .just(TestState(text: "Action 2 executed")), isSerial: true)
 		
 		let action3Scheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
-		let action3 = CustomDescriptorAction(scheduler: action3Scheduler, descriptor: .just(TestState(text: "Action 3 executed")))
+		let action3 = CustomDescriptorAction(scheduler: action3Scheduler, descriptor: .just(TestState(text: "Action 3 executed")), isSerial: true)
 		
 		store.dispatch(action1)
 		store.dispatch(action2)
@@ -514,7 +514,7 @@ class RxDataFlowTests: XCTestCase {
 				return Disposables.create()
 			}
 		}()
-		let action1 = CustomDescriptorAction(scheduler: MainScheduler.instance, descriptor: descriptor)
+		let action1 = CustomDescriptorAction(scheduler: MainScheduler.instance, descriptor: descriptor, isSerial: true)
 		
 		store.dispatch(action1)
 		store.dispatch(CompletionAction())
@@ -553,7 +553,7 @@ class RxDataFlowTests: XCTestCase {
 				return Disposables.create()
 			}
 		}()
-		let action1 = CustomDescriptorAction(scheduler: nil, descriptor: descriptor)
+		let action1 = CustomDescriptorAction(scheduler: nil, descriptor: descriptor, isSerial: true)
 		
 		store.dispatch(action1)
 		store.dispatch(CompletionAction())
