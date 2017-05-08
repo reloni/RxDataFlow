@@ -79,14 +79,18 @@ class CompositeActions: XCTestCase {
 	}
 	
 	func testCompositeActionStopIfErrorOccurred() {
+		
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 50)
-		
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
+		let errorExpectation = expectation(description: "Should throw error")
+		
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
 			completeExpectation.fulfill()
 		})
+		
+		_ = store.errors.subscribe(onNext: { _ in errorExpectation.fulfill() })
 		
 		let action = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed"),
 		                                         ChangeTextValueAction(newText: "Action 2 executed"),
@@ -97,7 +101,10 @@ class CompositeActions: XCTestCase {
 		store.dispatch(CompletionAction())
 		
 		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1)
+		let errorResult = XCTWaiter.wait(for: [errorExpectation], timeout: 1.5)
+		
 		XCTAssertEqual(result, .completed)
+		XCTAssertEqual(errorResult, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
 		                                      "Action 1 executed",

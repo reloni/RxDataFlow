@@ -311,4 +311,56 @@ class ConcurrentActionTests: XCTestCase {
 		XCTAssertEqual(4, concurrentScheduler.scheduleCounter)
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
+	
+	func testScheduleConcurrentCompositeActions_5() {
+		let serialScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
+		let concurrentScheduler = TestScheduler(internalScheduler: ConcurrentDispatchQueueScheduler(qos: .utility))
+		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		                                 initialState: TestState(text: "Initial value"),
+		                                 maxHistoryItems: 8,
+		                                 serialActionScheduler: serialScheduler,
+		                                 concurrentActionScheduler: concurrentScheduler)
+		
+		let completeExpectation = expectation(description: "Should perform all non-error actions")
+		let errorExpectation = expectation(description: "Should throw error")
+		
+		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
+			completeExpectation.fulfill()
+		})
+		
+		_ = store.errors.subscribe(onNext: { _ in errorExpectation.fulfill() })
+		
+		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
+		
+		let action1 = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (1)")), isSerial: true)
+		let action2 = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (2)")).delay(0.1, scheduler: delayScheduler), isSerial: true)
+		let action3 = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (3)")).delay(0.002, scheduler: delayScheduler), isSerial: false)
+		let action4 = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (4)")).delay(0.001, scheduler: delayScheduler), isSerial: false)
+		let action5 = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (5)")).delay(0.2, scheduler: delayScheduler), isSerial: true)
+		let action6 = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (6)")), isSerial: true)
+		
+		store.dispatch(action1)
+		store.dispatch(RxCompositeAction(action2, action3, ErrorAction(), action4, action5))
+		store.dispatch(action6)
+		DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+			store.dispatch(CompletionAction())
+		}
+		
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1.5)
+		let errorResult = XCTWaiter.wait(for: [errorExpectation], timeout: 1.5)
+		
+		XCTAssertEqual(result, .completed)
+		XCTAssertEqual(errorResult, .completed)
+		
+		let expectedStateHistoryTextValues = ["Initial value",
+		                                      "Action executed (1)",
+		                                      "Action executed (2)",
+		                                      "Action executed (6)",
+		                                      "Action executed (3)",
+		                                      "Completed"]
+		
+		XCTAssertEqual(5, serialScheduler.scheduleCounter)
+		XCTAssertEqual(2, concurrentScheduler.scheduleCounter)
+		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
+	}
 }
