@@ -312,7 +312,7 @@ class ConcurrentActionTests: XCTestCase {
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
 	
-	func testScheduleConcurrentCompositeActions_5() {
+	func testScheduleConcurrentCompositeActions_withConcurrentError_5() {
 		let serialScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let concurrentScheduler = TestScheduler(internalScheduler: ConcurrentDispatchQueueScheduler(qos: .utility))
 		let store = RxDataFlowController(reducer: TestStoreReducer(),
@@ -340,7 +340,7 @@ class ConcurrentActionTests: XCTestCase {
 		let action6 = CustomDescriptorAction(scheduler: nil, descriptor: Observable<RxStateType>.just(TestState(text: "Action executed (6)")), isSerial: true)
 		
 		store.dispatch(action1)
-		store.dispatch(RxCompositeAction(action2, action3, ErrorAction(), action4, action5))
+		store.dispatch(RxCompositeAction(action2, action3, ConcurrentErrorAction(), action4, action5))
 		store.dispatch(action6)
 		DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
 			store.dispatch(CompletionAction())
@@ -355,12 +355,14 @@ class ConcurrentActionTests: XCTestCase {
 		let expectedStateHistoryTextValues = ["Initial value",
 		                                      "Action executed (1)",
 		                                      "Action executed (2)",
-		                                      "Action executed (6)",
+		                                      "Action executed (4)",
 		                                      "Action executed (3)",
+		                                      "Action executed (5)",
+		                                      "Action executed (6)",
 		                                      "Completed"]
 		
 		XCTAssertEqual(5, serialScheduler.scheduleCounter)
-		XCTAssertEqual(2, concurrentScheduler.scheduleCounter)
+		XCTAssertEqual(6, concurrentScheduler.scheduleCounter)
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
 }

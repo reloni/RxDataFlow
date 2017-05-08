@@ -82,6 +82,11 @@ struct ErrorAction : RxActionType {
 	var scheduler: ImmediateSchedulerType?
 }
 
+struct ConcurrentErrorAction : RxActionType {
+	let isSerial = false
+	var scheduler: ImmediateSchedulerType?
+}
+
 struct TestStoreReducer : RxReducerType {
 	func handle(_ action: RxActionType, flowController: RxDataFlowControllerType) -> Observable<RxStateType> {
 		switch action {
@@ -89,6 +94,7 @@ struct TestStoreReducer : RxReducerType {
 		case _ as CompletionAction: return completion()
 		case let a as CustomDescriptorAction: return a.descriptor
 		case _ as ErrorAction: return error()
+		case _ as ConcurrentErrorAction: return error()
 		case let enumAction as EnumAction:
 			switch enumAction {
 			case .inMainScheduler(let descriptor):
