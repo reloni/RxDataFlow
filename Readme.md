@@ -1,4 +1,5 @@
 # RxDataFlow
+
 [![Build Status](https://travis-ci.org/reloni/RxDataFlow.svg?branch=master)](https://travis-ci.org/reloni/RxDataFlow)
 [![codecov](https://codecov.io/gh/reloni/RxDataFlow/branch/master/graph/badge.svg)](https://codecov.io/gh/reloni/RxDataFlow)
 ![Platform iOS](https://img.shields.io/badge/platform-iOS-lightgray.svg)
@@ -8,11 +9,16 @@
 # Requirements
 - Xcode 8.3
 - Swift 3.0
+- RxSwift 3.4
 
 # Introduction
+RxDataFlow is another implementation of unidirectional data flow architecture. This library is inspired by ReSwift (which was inspired by Redux).
+
+More information will be added soon:)
 
 # Table of Contents
 
 # Installation
 
 # Example Projects
+[SimpleToDo](https://github.com/reloni/SimpleTodo) - experimental project that uses RxDataFlow architecture.
