@@ -61,8 +61,11 @@ class CompositeActions: XCTestCase {
 			}
 		})
 		
+		let descriptor = testStateDescriptor(text: "Action 2 executed")
 		let action = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed"),
-		                                         CustomDescriptorAction(scheduler: nil, descriptor: .just((TestState(text: "Action 2 executed"))), isSerial: true)])
+		                                         CustomDescriptorAction(scheduler: nil,
+		                                                                descriptor: .just(descriptor),
+		                                                                isSerial: true)])
 		store.dispatch(action)
 		store.dispatch(CompletionAction())
 		
@@ -184,17 +187,17 @@ class CompositeActions: XCTestCase {
 		
 		let action1 = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed", scheduler: scheduler1),
 		                                          ChangeTextValueAction(newText: "Action 2 executed", scheduler: scheduler2),
-		                                          EnumAction.inCustomScheduler(scheduler3, .just((TestState(text: "Action 3 executed")))),
+		                                          EnumAction.inCustomScheduler(scheduler3, .just(testStateDescriptor(text: "Action 3 executed"))),
 		                                          ChangeTextValueAction(newText: "Action 4 executed"),
-		                                          EnumAction.inMainScheduler(.just((TestState(text: "Action 5 executed"))))],
+		                                          EnumAction.inMainScheduler(.just(testStateDescriptor(text: "Action 5 executed")))],
 		                                scheduler: topScheduler)
 		store.dispatch(action1)
 		
 		let action2 = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 6 executed", scheduler: nil),
 		                                          ChangeTextValueAction(newText: "Action 7 executed", scheduler: nil),
-		                                          EnumAction.inCustomScheduler(scheduler3, .just((TestState(text: "Action 8 executed")))),
+		                                          EnumAction.inCustomScheduler(scheduler3, .just(testStateDescriptor(text: "Action 8 executed"))),
 		                                          ChangeTextValueAction(newText: "Action 9 executed"),
-		                                          EnumAction.inMainScheduler(.just((TestState(text: "Action 10 executed"))))],
+		                                          EnumAction.inMainScheduler(.just(testStateDescriptor(text: "Action 10 executed")))],
 		                                scheduler: nil)
 		store.dispatch(action2)
 		
@@ -237,24 +240,24 @@ class CompositeActions: XCTestCase {
 		})
 		
 		
-		let descriptor1: Observable<RxStateType> = {
+		let descriptor1: Observable<RxStateMutator> = {
 			return Observable.create { observer in
 				XCTAssertEqual(store.currentState.state.text, "Action 1 executed")
 				DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 1.0) {
 					XCTAssertEqual(store.currentState.state.text, "Action 1 executed")
-					observer.onNext(TestState(text: "Action 2 executed"))
+					observer.onNext(testStateDescriptor(text: "Action 2 executed"))
 					observer.onCompleted()
 				}
 				return Disposables.create()
 			}
 		}()
 		
-		let descriptor2: Observable<RxStateType> = {
+		let descriptor2: Observable<RxStateMutator> = {
 			return Observable.create { observer in
 				XCTAssertEqual(store.currentState.state.text, "Action 5 executed")
 				DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.2) {
 					XCTAssertEqual(store.currentState.state.text, "Action 5 executed")
-					observer.onNext(TestState(text: "Action 6 executed"))
+					observer.onNext(testStateDescriptor(text: "Action 6 executed"))
 					observer.onCompleted()
 				}
 				return Disposables.create()
@@ -265,7 +268,7 @@ class CompositeActions: XCTestCase {
 		                                         CustomDescriptorAction(scheduler: nil, descriptor: descriptor1, isSerial: true),
 		                                         ChangeTextValueAction(newText: "Action 3 executed", scheduler: nil),
 		                                         ChangeTextValueAction(newText: "Action 4 executed"),
-		                                         EnumAction.inMainScheduler(.just((TestState(text: "Action 5 executed")))),
+		                                         EnumAction.inMainScheduler(.just(testStateDescriptor(text: "Action 5 executed"))),
 		                                         CustomDescriptorAction(scheduler: nil, descriptor: descriptor2, isSerial: true)])
 		store.dispatch(action)
 		store.dispatch(CompletionAction())
