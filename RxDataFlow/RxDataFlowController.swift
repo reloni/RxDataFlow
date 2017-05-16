@@ -27,15 +27,17 @@ public protocol RxActionType {
 public struct RxCompositeAction : RxActionType {
 	public let scheduler: ImmediateSchedulerType?
 	public let actions: [RxActionType]
-	public let isSerial = true
+	public let isSerial: Bool
 	
-	public init(actions: [RxActionType], scheduler: ImmediateSchedulerType? = nil) {
+	public init(actions: [RxActionType], isSerial: Bool = true, scheduler: ImmediateSchedulerType? = nil) {
 		self.actions = actions
+		self.isSerial = isSerial
 		self.scheduler = scheduler
 	}
 	
-	public init(_ actions: RxActionType..., scheduler: ImmediateSchedulerType? = nil) {
+	public init(_ actions: RxActionType..., isSerial: Bool = true, scheduler: ImmediateSchedulerType? = nil) {
 		self.actions = actions
+		self.isSerial = isSerial
 		self.scheduler = scheduler
 	}
 }
@@ -118,6 +120,7 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 		let object = self
 		return Observable<RxActionType>.from([action], scheduler: schedulerForAction)
 			.flatMap { act in object.reducer.handle(act, flowController: object).subscribeOn(schedulerForAction) }
+			.observeOn(schedulerForAction)
 			.flatMap { result -> Observable<(setBy: RxActionType, state: RxStateType)> in return .just((setBy: action, state: result)) }
 	}
 	
@@ -156,6 +159,7 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 		}()
 		
 		return schedule(actionDescriptor: descriptor, for: action)
+			.observeOn(serialActionScheduler)
 			.do(onNext: { [weak self] in self?.currentStateSubject.onNext((setBy: $0.setBy, state: $0.state as! State)) },
 			    onError: { [weak self] in self?.propagate(error: $0, from: action) },
 			    onDispose: { [weak self] _ in _ = self?.actionsQueue.dequeue() })
@@ -175,7 +179,8 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 					let descriptor = object.descriptor(for: action, owner: compositeAction).catchError { error -> Observable<(setBy: RxActionType, state: RxStateType)> in
 						return .error(FlowControllerError.compositeActionError(erroredAction: action, error: error))
 					}
-						let subscription = object.schedule(actionDescriptor: descriptor, for: action)
+					let subscription = object.schedule(actionDescriptor: descriptor, for: action)
+						.observeOn(object.serialActionScheduler)
 						.do(onNext: { observer.onNext((setBy: $0.setBy, state: $0.state as! State)) },
 						    onError: { observer.onError($0) },
 						    onCompleted: { _ = compositeQueue.dequeue() },
