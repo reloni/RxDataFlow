@@ -240,7 +240,7 @@ class CompositeActions: XCTestCase {
 		})
 		
 		
-		let descriptor1: Observable<RxStateMutator> = {
+		let descriptor1: Observable<RxStateMutator<TestState>> = {
 			return Observable.create { observer in
 				XCTAssertEqual(store.currentState.state.text, "Action 1 executed")
 				DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 1.0) {
@@ -252,7 +252,7 @@ class CompositeActions: XCTestCase {
 			}
 		}()
 		
-		let descriptor2: Observable<RxStateMutator> = {
+		let descriptor2: Observable<RxStateMutator<TestState>> = {
 			return Observable.create { observer in
 				XCTAssertEqual(store.currentState.state.text, "Action 5 executed")
 				DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.2) {

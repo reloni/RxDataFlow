@@ -15,10 +15,24 @@ public protocol RxDataFlowControllerType {
 
 public protocol RxStateType { }
 
-public typealias RxStateMutator = (RxStateType) -> (RxStateType)
+public typealias RxStateMutator<State: RxStateType> = (State) -> (State)
 
 public protocol RxReducerType {
-	func handle(_ action: RxActionType, flowController: RxDataFlowControllerType) -> Observable<RxStateMutator>
+	associatedtype State: RxStateType
+	
+	func handle(_ action: RxActionType, currentState: State) -> Observable<RxStateMutator<State>>
+}
+
+public final class AnyRxReducer<Reducer: RxReducerType>: RxReducerType {
+	let reducer: Reducer
+
+	public func handle(_ action: RxActionType, currentState: Reducer.State) -> Observable<RxStateMutator<Reducer.State>> {
+		return reducer.handle(action, currentState: currentState)
+	}
+	
+	init(reducer: Reducer) {
+		self.reducer = reducer
+	}
 }
 
 public protocol RxActionType {
@@ -54,25 +68,25 @@ fileprivate enum FlowControllerError: Error {
 }
 
 
-public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType {
-	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject.asObservable().observeOn(serialActionScheduler) }
-	public var currentState: (setBy: RxActionType, state: State) { return stateStack.peek()! }
-	public var errors: Observable<(state: State, action: RxActionType, error: Error)> { return errorsSubject }
+public class RxDataFlowController<Reducer: RxReducerType> : RxDataFlowControllerType {
+	public var state: Observable<(setBy: RxActionType, state: Reducer.State)> { return currentStateSubject.asObservable().observeOn(serialActionScheduler) }
+	public var currentState: (setBy: RxActionType, state: Reducer.State) { return stateStack.peek()! }
+	public var errors: Observable<(state: Reducer.State, action: RxActionType, error: Error)> { return errorsSubject }
 	
 	let bag = DisposeBag()
-	let reducer: RxReducerType
+	let reducer: AnyRxReducer<Reducer>
 	let serialActionScheduler: ImmediateSchedulerType
 	let concurrentActionScheduler: ImmediateSchedulerType
 	
-	var stateStack: FixedStack<(setBy: RxActionType, state: State)>
+	var stateStack: FixedStack<(setBy: RxActionType, state: Reducer.State)>
 	var actionsQueue = Queue<RxActionType>()
 	var isActionExecuting = BehaviorSubject(value: false)
 	
-	let currentStateSubject: BehaviorSubject<(setBy: RxActionType, state: State)>
-	let errorsSubject = PublishSubject<(state: State, action: RxActionType, error: Error)>()
+	let currentStateSubject: BehaviorSubject<(setBy: RxActionType, state: Reducer.State)>
+	let errorsSubject = PublishSubject<(state: Reducer.State, action: RxActionType, error: Error)>()
 	
-	public convenience init(reducer: RxReducerType,
-	                        initialState: State,
+	public convenience init(reducer: Reducer,
+	                        initialState: Reducer.State,
 	                        maxHistoryItems: UInt = 1,
 	                        dispatchAction: RxActionType? = nil) {
 		self.init(reducer: reducer,
@@ -83,15 +97,15 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 		          dispatchAction: dispatchAction)
 	}
 	
-	init(reducer: RxReducerType,
-	     initialState: State,
+	init(reducer: Reducer,
+	     initialState: Reducer.State,
 	     maxHistoryItems: UInt = 50,
 	     serialActionScheduler: ImmediateSchedulerType,
 	     concurrentActionScheduler: ImmediateSchedulerType,
 	     dispatchAction: RxActionType? = nil) {
 		self.serialActionScheduler = serialActionScheduler
 		self.concurrentActionScheduler = concurrentActionScheduler
-		self.reducer = reducer
+		self.reducer = AnyRxReducer(reducer: reducer)
 		stateStack = FixedStack(capacity: maxHistoryItems)
 		stateStack.push((setBy: RxInitializationAction(), state: initialState))
 		
@@ -117,13 +131,13 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 		return actionScheduler ?? (action.isSerial ? serialActionScheduler : concurrentActionScheduler)
 	}
 	
-	private func descriptor(for action: RxActionType, owner: RxCompositeAction? = nil) -> Observable<(setBy: RxActionType, mutator: RxStateMutator)> {
+	private func descriptor(for action: RxActionType, owner: RxCompositeAction? = nil) -> Observable<(setBy: RxActionType, mutator: RxStateMutator<Reducer.State>)> {
 		let schedulerForAction = scheduler(for: action, owner: owner)
 		let object = self
 		return Observable<RxActionType>.from([action], scheduler: schedulerForAction)
-			.flatMap { act in object.reducer.handle(act, flowController: object).subscribeOn(schedulerForAction) }
+			.flatMap { act in object.reducer.handle(act, currentState: object.currentState.state).subscribeOn(schedulerForAction) }
 			.observeOn(schedulerForAction)
-			.flatMap { result -> Observable<(setBy: RxActionType, mutator: RxStateMutator)> in return .just((setBy: action, mutator: result)) }
+			.flatMap { result -> Observable<(setBy: RxActionType, mutator: RxStateMutator<Reducer.State>)> in return .just((setBy: action, mutator: result)) }
 	}
 	
 	private func subscribe() {
@@ -135,12 +149,12 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 			}.subscribe().disposed(by: bag)
 	}
 	
-	private func mutateState(with mutator: RxStateMutator) -> State {
-		return mutator(currentState.state) as! State
+	private func mutateState(with mutator: RxStateMutator<Reducer.State>) -> Reducer.State {
+		return mutator(currentState.state)
 	}
 	
-	private func schedule(actionDescriptor: Observable<(setBy: RxActionType, mutator: RxStateMutator)>, for action: RxActionType)
-		-> Observable<(setBy: RxActionType, mutator: RxStateMutator)> {
+	private func schedule(actionDescriptor: Observable<(setBy: RxActionType, mutator: RxStateMutator<Reducer.State>)>, for action: RxActionType)
+		-> Observable<(setBy: RxActionType, mutator: RxStateMutator<Reducer.State>)> {
 			guard !action.isSerial else { return actionDescriptor.observeOn(serialActionScheduler) }
 			
 			actionDescriptor
@@ -158,7 +172,7 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 	}
 	
 	private func observe(action: RxActionType) -> Observable<Void> {
-		let descriptor: Observable<(setBy: RxActionType, mutator: RxStateMutator)> = { [weak self] in
+		let descriptor: Observable<(setBy: RxActionType, mutator: RxStateMutator<Reducer.State>)> = { [weak self] in
 			guard let object = self else { return .empty() }
 			
 			guard let compositeAction = action as? RxCompositeAction else {
@@ -176,13 +190,11 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 				},
 			    onError: { [weak self] in self?.propagate(error: $0, from: action) },
 			    onDispose: { [weak self] _ in _ = self?.actionsQueue.dequeue() })
-//			.flatMap { result -> Observable<RxStateType?> in .just(result.state) }
-//			.catchErrorJustReturn(nil)
 			.flatMap { _ in return Observable<Void>.just() }
 			.catchError { _ in .just() }
 	}
 	
-	private func observe(compositeAction: RxCompositeAction) -> Observable<(setBy: RxActionType, mutator: RxStateMutator)> {
+	private func observe(compositeAction: RxCompositeAction) -> Observable<(setBy: RxActionType, mutator: RxStateMutator<Reducer.State>)> {
 		return Observable.create { [weak self] observer in
 			guard let object = self else { return Disposables.create() }
 			
@@ -190,7 +202,7 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 			
 			let disposable = compositeQueue.currentItemSubject.observeOn(object.serialActionScheduler).flatMap { action -> Observable<RxStateType> in
 				return Observable.create { _ in
-					let descriptor = object.descriptor(for: action, owner: compositeAction).catchError { error -> Observable<(setBy: RxActionType, mutator: RxStateMutator)> in
+					let descriptor = object.descriptor(for: action, owner: compositeAction).catchError { error -> Observable<(setBy: RxActionType, mutator: RxStateMutator<Reducer.State>)> in
 						return .error(FlowControllerError.compositeActionError(erroredAction: action, error: error))
 					}
 					let subscription = object.schedule(actionDescriptor: descriptor, for: action)

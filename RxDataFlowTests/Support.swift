@@ -11,7 +11,7 @@ import Foundation
 import RxSwift
 import XCTest
 
-final class TestFlowController<State: RxStateType> : RxDataFlowController<State> {
+final class TestFlowController<Reducer: RxReducerType> : RxDataFlowController<Reducer> {
 	var onDeinit: ((TestFlowController) -> ())?
 	deinit {
 		onDeinit?(self)
@@ -36,7 +36,7 @@ struct TestState : RxStateType {
 	let text: String
 }
 
-func testStateDescriptor(text: String) -> (RxStateType) -> (RxStateType) {
+func testStateDescriptor(text: String) -> (TestState) -> (TestState) {
 	return { _ in return TestState(text: text) }
 }
 
@@ -54,13 +54,13 @@ extension ChangeTextValueAction {
 
 struct CustomDescriptorAction : RxActionType {
 	var scheduler: ImmediateSchedulerType?
-	let descriptor: Observable<RxStateMutator>
+	let descriptor: Observable<RxStateMutator<TestState>>
 	let isSerial: Bool
 }
 
 enum EnumAction : RxActionType {
-	case inMainScheduler(Observable<RxStateMutator>)
-	case inCustomScheduler(ImmediateSchedulerType, Observable<RxStateMutator>)
+	case inMainScheduler(Observable<RxStateMutator<TestState>>)
+	case inCustomScheduler(ImmediateSchedulerType, Observable<RxStateMutator<TestState>>)
 	
 	var isSerial: Bool { return true }
 	
@@ -93,7 +93,7 @@ struct ConcurrentErrorAction : RxActionType {
 }
 
 struct TestStoreReducer : RxReducerType {
-	func handle(_ action: RxActionType, flowController: RxDataFlowControllerType) -> Observable<RxStateMutator> {
+	func handle(_ action: RxActionType, currentState: TestState) -> Observable<RxStateMutator<TestState>> {
 		switch action {
 		case let a as ChangeTextValueAction: return .just({ _ in return TestState(text: a.newText) }) //return changeTextValue(newText: a.newText)
 		case _ as CompletionAction: return .just({ _ in return TestState(text: "Completed") }) //return completion()

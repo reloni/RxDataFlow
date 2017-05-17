@@ -283,10 +283,10 @@ class RxDataFlowTests: XCTestCase {
 				if i == 11 {
 					return CompletionAction()
 				} else if i % 3 == 0 {
-					let descriptor = Observable<RxStateMutator>.error(TestError.someError).delaySubscription(after, scheduler: delayScheduler)
+					let descriptor = Observable<RxStateMutator<TestState>>.error(TestError.someError).delaySubscription(after, scheduler: delayScheduler)
 					return CustomDescriptorAction(scheduler: delayScheduler, descriptor: descriptor, isSerial: true)
 				} else {
-					let descriptor = Observable<RxStateMutator>.just(testStateDescriptor(text: "Action \(i) executed")).delaySubscription(after, scheduler: delayScheduler)
+					let descriptor = Observable<RxStateMutator<TestState>>.just(testStateDescriptor(text: "Action \(i) executed")).delaySubscription(after, scheduler: delayScheduler)
 					return CustomDescriptorAction(scheduler: delayScheduler, descriptor: descriptor, isSerial: true)
 				}
 			}()
@@ -318,7 +318,7 @@ class RxDataFlowTests: XCTestCase {
 			completeExpectation.fulfill()
 		})
 		
-		let descriptor1: Observable<RxStateMutator> = {
+		let descriptor1: Observable<RxStateMutator<TestState>> = {
 			return Observable.create { observer in
 				XCTAssertEqual(store.currentState.state.text, "Action 1 executed")
 				DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 1.0) {
@@ -329,7 +329,7 @@ class RxDataFlowTests: XCTestCase {
 				return Disposables.create()
 			}
 		}()
-		let descriptor2: Observable<RxStateMutator> = {
+		let descriptor2: Observable<RxStateMutator<TestState>> = {
 			return Observable.create { observer in
 				XCTAssertEqual(store.currentState.state.text, "Action 2 executed")
 				DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.4) {
@@ -399,7 +399,7 @@ class RxDataFlowTests: XCTestCase {
 		
 		let action1Scheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		
-		let descriptor: Observable<RxStateMutator> = {
+		let descriptor: Observable<RxStateMutator<TestState>> = {
 			return Observable.create { observer in
 				XCTAssertTrue(!Thread.isMainThread)
 				observer.onNext(testStateDescriptor(text: "Action 1 executed"))
@@ -506,7 +506,7 @@ class RxDataFlowTests: XCTestCase {
 			completeExpectation.fulfill()
 		})
 		
-		let descriptor: Observable<RxStateMutator> = {
+		let descriptor: Observable<RxStateMutator<TestState>> = {
 			return Observable.create { observer in
 				XCTAssertTrue(Thread.isMainThread)
 				observer.onNext(testStateDescriptor(text: "Action 1 executed"))
@@ -539,7 +539,7 @@ class RxDataFlowTests: XCTestCase {
 			completeExpectation.fulfill()
 		})
 		
-		let descriptor: Observable<RxStateMutator> = {
+		let descriptor: Observable<RxStateMutator<TestState>> = {
 			return Observable.create { observer in
 				observer.onNext(testStateDescriptor(text: "Action executed (1)"))
 				observer.onNext(testStateDescriptor(text: "Action executed (2)"))
@@ -580,7 +580,7 @@ class RxDataFlowTests: XCTestCase {
 			completeExpectation.fulfill()
 		})
 		
-		let action1Descriptor: Observable<RxStateMutator> = {
+		let action1Descriptor: Observable<RxStateMutator<TestState>> = {
 			return Observable.create { observer in
 				XCTAssertTrue(Thread.isMainThread)
 				observer.onNext(testStateDescriptor(text: "Action 1 executed"))
