@@ -11,7 +11,7 @@ import Foundation
 import RxSwift
 import XCTest
 
-final class TestFlowController<State: RxStateType> : RxDataFlowController<State> {
+final class TestFlowController<Reducer: RxReducerType> : RxDataFlowController<Reducer> {
 	var onDeinit: ((TestFlowController) -> ())?
 	deinit {
 		onDeinit?(self)
@@ -36,6 +36,10 @@ struct TestState : RxStateType {
 	let text: String
 }
 
+func testStateDescriptor(text: String) -> (TestState) -> (TestState) {
+	return { _ in return TestState(text: text) }
+}
+
 struct ChangeTextValueAction : RxActionType {
 	let isSerial = true
 	let newText: String
@@ -50,13 +54,13 @@ extension ChangeTextValueAction {
 
 struct CustomDescriptorAction : RxActionType {
 	var scheduler: ImmediateSchedulerType?
-	let descriptor: Observable<RxStateType>
+	let descriptor: Observable<RxStateMutator<TestState>>
 	let isSerial: Bool
 }
 
 enum EnumAction : RxActionType {
-	case inMainScheduler(Observable<RxStateType>)
-	case inCustomScheduler(ImmediateSchedulerType, Observable<RxStateType>)
+	case inMainScheduler(Observable<RxStateMutator<TestState>>)
+	case inCustomScheduler(ImmediateSchedulerType, Observable<RxStateMutator<TestState>>)
 	
 	var isSerial: Bool { return true }
 	
@@ -89,13 +93,13 @@ struct ConcurrentErrorAction : RxActionType {
 }
 
 struct TestStoreReducer : RxReducerType {
-	func handle(_ action: RxActionType, flowController: RxDataFlowControllerType) -> Observable<RxStateType> {
+	func handle(_ action: RxActionType, currentState: TestState) -> Observable<RxStateMutator<TestState>> {
 		switch action {
-		case let a as ChangeTextValueAction: return changeTextValue(newText: a.newText)
-		case _ as CompletionAction: return completion()
+		case let a as ChangeTextValueAction: return .just({ _ in return TestState(text: a.newText) }) //return changeTextValue(newText: a.newText)
+		case _ as CompletionAction: return .just({ _ in return TestState(text: "Completed") }) //return completion()
 		case let a as CustomDescriptorAction: return a.descriptor
-		case _ as ErrorAction: return error()
-		case _ as ConcurrentErrorAction: return error()
+		case _ as ErrorAction: return .error(TestError.someError) //return error()
+		case _ as ConcurrentErrorAction: return .error(TestError.someError)
 		case let enumAction as EnumAction:
 			switch enumAction {
 			case .inMainScheduler(let descriptor):

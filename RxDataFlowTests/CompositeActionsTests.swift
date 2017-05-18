@@ -61,8 +61,11 @@ class CompositeActions: XCTestCase {
 			}
 		})
 		
+		let descriptor = testStateDescriptor(text: "Action 2 executed")
 		let action = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed"),
-		                                         CustomDescriptorAction(scheduler: nil, descriptor: .just((TestState(text: "Action 2 executed"))), isSerial: true)])
+		                                         CustomDescriptorAction(scheduler: nil,
+		                                                                descriptor: .just(descriptor),
+		                                                                isSerial: true)])
 		store.dispatch(action)
 		store.dispatch(CompletionAction())
 		
@@ -184,17 +187,17 @@ class CompositeActions: XCTestCase {
 		
 		let action1 = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed", scheduler: scheduler1),
 		                                          ChangeTextValueAction(newText: "Action 2 executed", scheduler: scheduler2),
-		                                          EnumAction.inCustomScheduler(scheduler3, .just((TestState(text: "Action 3 executed")))),
+		                                          EnumAction.inCustomScheduler(scheduler3, .just(testStateDescriptor(text: "Action 3 executed"))),
 		                                          ChangeTextValueAction(newText: "Action 4 executed"),
-		                                          EnumAction.inMainScheduler(.just((TestState(text: "Action 5 executed"))))],
+		                                          EnumAction.inMainScheduler(.just(testStateDescriptor(text: "Action 5 executed")))],
 		                                scheduler: topScheduler)
 		store.dispatch(action1)
 		
 		let action2 = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 6 executed", scheduler: nil),
 		                                          ChangeTextValueAction(newText: "Action 7 executed", scheduler: nil),
-		                                          EnumAction.inCustomScheduler(scheduler3, .just((TestState(text: "Action 8 executed")))),
+		                                          EnumAction.inCustomScheduler(scheduler3, .just(testStateDescriptor(text: "Action 8 executed"))),
 		                                          ChangeTextValueAction(newText: "Action 9 executed"),
-		                                          EnumAction.inMainScheduler(.just((TestState(text: "Action 10 executed"))))],
+		                                          EnumAction.inMainScheduler(.just(testStateDescriptor(text: "Action 10 executed")))],
 		                                scheduler: nil)
 		store.dispatch(action2)
 		
@@ -237,24 +240,24 @@ class CompositeActions: XCTestCase {
 		})
 		
 		
-		let descriptor1: Observable<RxStateType> = {
+		let descriptor1: Observable<RxStateMutator<TestState>> = {
 			return Observable.create { observer in
 				XCTAssertEqual(store.currentState.state.text, "Action 1 executed")
 				DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 1.0) {
 					XCTAssertEqual(store.currentState.state.text, "Action 1 executed")
-					observer.onNext(TestState(text: "Action 2 executed"))
+					observer.onNext(testStateDescriptor(text: "Action 2 executed"))
 					observer.onCompleted()
 				}
 				return Disposables.create()
 			}
 		}()
 		
-		let descriptor2: Observable<RxStateType> = {
+		let descriptor2: Observable<RxStateMutator<TestState>> = {
 			return Observable.create { observer in
 				XCTAssertEqual(store.currentState.state.text, "Action 5 executed")
 				DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.2) {
 					XCTAssertEqual(store.currentState.state.text, "Action 5 executed")
-					observer.onNext(TestState(text: "Action 6 executed"))
+					observer.onNext(testStateDescriptor(text: "Action 6 executed"))
 					observer.onCompleted()
 				}
 				return Disposables.create()
@@ -265,7 +268,7 @@ class CompositeActions: XCTestCase {
 		                                         CustomDescriptorAction(scheduler: nil, descriptor: descriptor1, isSerial: true),
 		                                         ChangeTextValueAction(newText: "Action 3 executed", scheduler: nil),
 		                                         ChangeTextValueAction(newText: "Action 4 executed"),
-		                                         EnumAction.inMainScheduler(.just((TestState(text: "Action 5 executed")))),
+		                                         EnumAction.inMainScheduler(.just(testStateDescriptor(text: "Action 5 executed"))),
 		                                         CustomDescriptorAction(scheduler: nil, descriptor: descriptor2, isSerial: true)])
 		store.dispatch(action)
 		store.dispatch(CompletionAction())
@@ -282,6 +285,65 @@ class CompositeActions: XCTestCase {
 		                                      "Action 6 executed",
 		                                      "Completed"]
 		
+		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
+	}
+	
+	func testFallbackAction() {
+		let serialScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
+		let concurrentScheduler = TestScheduler(internalScheduler: ConcurrentDispatchQueueScheduler(qos: .utility))
+		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		                                 initialState: TestState(text: "Initial value"),
+		                                 maxHistoryItems: 8,
+		                                 serialActionScheduler: serialScheduler,
+		                                 concurrentActionScheduler: concurrentScheduler)
+		
+		let completeExpectation = expectation(description: "Should perform all non-error actions")
+		
+		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
+			completeExpectation.fulfill()
+		})
+		
+		var errorCounter = 0
+		_ = store.errors.subscribe(onNext: {
+			if case TestError.someError = $0.error { errorCounter += 1 }
+		})
+		
+		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
+		
+		let action1 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (1)")), isSerial: true)
+		let action2 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (2)")).delay(0.2, scheduler: delayScheduler), isSerial: true)
+		let action3 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (3)")).delay(0.002, scheduler: delayScheduler), isSerial: true)
+		let action4 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (4)")).delay(0.001, scheduler: delayScheduler), isSerial: true)
+		let action5 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (5)")).delay(0.3, scheduler: delayScheduler), isSerial: true)
+		let action6 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (6)")), isSerial: true)
+		
+		let fallback1 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Fallback 1 executed")), isSerial: true)
+		let fallback2 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Fallback 2 executed")), isSerial: true)
+		
+		store.dispatch(action1)
+		store.dispatch(RxCompositeAction(action2, ErrorAction(), action3, fallbackAction: fallback1, isSerial: true))
+		store.dispatch(RxCompositeAction(action4, ErrorAction(), action5, fallbackAction: fallback2, isSerial: true))
+		store.dispatch(action6)
+		DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+			store.dispatch(CompletionAction())
+		}
+		
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 2.5)
+		
+		XCTAssertEqual(result, .completed)
+		
+		let expectedStateHistoryTextValues = ["Initial value",
+		                                      "Action executed (1)",
+		                                      "Action executed (2)",
+		                                      "Action executed (4)",
+		                                      "Action executed (6)",
+		                                      "Fallback 1 executed",
+		                                      "Fallback 2 executed",
+		                                      "Completed"]
+		
+		XCTAssertEqual(9, serialScheduler.scheduleCounter)
+		XCTAssertEqual(0, concurrentScheduler.scheduleCounter)
+		XCTAssertEqual(2, errorCounter)
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
 }
