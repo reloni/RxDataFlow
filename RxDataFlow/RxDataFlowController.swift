@@ -44,15 +44,18 @@ public struct RxCompositeAction : RxActionType {
 	public let scheduler: ImmediateSchedulerType?
 	public let actions: [RxActionType]
 	public let isSerial: Bool
+	public let fallbackAction: RxActionType?
 	
-	public init(actions: [RxActionType], isSerial: Bool = true, scheduler: ImmediateSchedulerType? = nil) {
+	public init(actions: [RxActionType], fallbackAction: RxActionType? = nil, isSerial: Bool = true, scheduler: ImmediateSchedulerType? = nil) {
 		self.actions = actions
+		self.fallbackAction = fallbackAction
 		self.isSerial = isSerial
 		self.scheduler = scheduler
 	}
 	
-	public init(_ actions: RxActionType..., isSerial: Bool = true, scheduler: ImmediateSchedulerType? = nil) {
+	public init(_ actions: RxActionType..., fallbackAction: RxActionType? = nil, isSerial: Bool = true, scheduler: ImmediateSchedulerType? = nil) {
 		self.actions = actions
+		self.fallbackAction = fallbackAction
 		self.isSerial = isSerial
 		self.scheduler = scheduler
 	}
@@ -188,7 +191,12 @@ public class RxDataFlowController<Reducer: RxReducerType> : RxDataFlowController
 				guard let newState = self?.mutateState(with: next.mutator) else { return }
 				self?.currentStateSubject.onNext((setBy: next.setBy, state: newState))
 				},
-			    onError: { [weak self] in self?.propagate(error: $0, from: action) },
+			    onError: { [weak self] in
+						self?.propagate(error: $0, from: action)
+						if let fallback = (action as? RxCompositeAction)?.fallbackAction {
+							self?.dispatch(fallback)
+						}
+					},
 			    onDispose: { [weak self] _ in _ = self?.actionsQueue.dequeue() })
 			.flatMap { _ in return Observable<Void>.just() }
 			.catchError { _ in .just() }
