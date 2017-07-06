@@ -12,7 +12,7 @@ import RxSwift
 
 class CompositeActions: XCTestCase {
 	func testCompositeAction() {
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 50)
 		
@@ -42,7 +42,7 @@ class CompositeActions: XCTestCase {
 	}
 	
 	func testCorrectSetByAction() {
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 50)
 		
@@ -83,7 +83,7 @@ class CompositeActions: XCTestCase {
 	
 	func testCompositeActionStopIfErrorOccurred() {
 		
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 50)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
@@ -122,7 +122,7 @@ class CompositeActions: XCTestCase {
 	}
 	
 	func testMultipleCompositeActions() {
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 50)
 		
@@ -169,7 +169,7 @@ class CompositeActions: XCTestCase {
 	}
 	
 	func testInvokeChildActionsInCorrectScheduler() {
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 50,
 		                                 serialActionScheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)),
@@ -228,7 +228,7 @@ class CompositeActions: XCTestCase {
 	}
 	
 	func testInvokeChildActionsInCorrectOrder() {
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 50,
 		                                 serialActionScheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)),
@@ -291,7 +291,7 @@ class CompositeActions: XCTestCase {
 	func testFallbackAction() {
 		let serialScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let concurrentScheduler = TestScheduler(internalScheduler: ConcurrentDispatchQueueScheduler(qos: .utility))
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 8,
 		                                 serialActionScheduler: serialScheduler,

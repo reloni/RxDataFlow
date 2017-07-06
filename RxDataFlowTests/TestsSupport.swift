@@ -11,7 +11,7 @@ import Foundation
 import RxSwift
 import XCTest
 
-final class TestFlowController<Reducer: RxReducerType> : RxDataFlowController<Reducer> {
+final class TestFlowController<State: RxStateType> : RxDataFlowController<State> {
 	var onDeinit: ((TestFlowController) -> ())?
 	deinit {
 		onDeinit?(self)
@@ -92,36 +92,34 @@ struct ConcurrentErrorAction : RxActionType {
 	var scheduler: ImmediateSchedulerType?
 }
 
-struct TestStoreReducer : RxReducerType {
-	func handle(_ action: RxActionType, currentState: TestState) -> Observable<RxStateMutator<TestState>> {
-		switch action {
-		case let a as ChangeTextValueAction: return .just({ _ in return TestState(text: a.newText) }) //return changeTextValue(newText: a.newText)
-		case _ as CompletionAction: return .just({ _ in return TestState(text: "Completed") }) //return completion()
-		case let a as CustomDescriptorAction: return a.descriptor
-		case _ as ErrorAction: return .error(TestError.someError) //return error()
-		case _ as ConcurrentErrorAction: return .error(TestError.someError)
-		case let enumAction as EnumAction:
-			switch enumAction {
-			case .inMainScheduler(let descriptor):
-				XCTAssertTrue(Thread.isMainThread)
-				return descriptor
-			case .inCustomScheduler(_, let descriptor):
-				XCTAssertFalse(Thread.isMainThread)
-				return descriptor
-			}
-		default: return Observable.empty()
+func testStoreReducer(_ action: RxActionType, currentState: TestState) -> Observable<RxStateMutator<TestState>> {
+	switch action {
+	case let a as ChangeTextValueAction: return .just({ _ in return TestState(text: a.newText) }) //return changeTextValue(newText: a.newText)
+	case _ as CompletionAction: return .just({ _ in return TestState(text: "Completed") }) //return completion()
+	case let a as CustomDescriptorAction: return a.descriptor
+	case _ as ErrorAction: return .error(TestError.someError) //return error()
+	case _ as ConcurrentErrorAction: return .error(TestError.someError)
+	case let enumAction as EnumAction:
+		switch enumAction {
+		case .inMainScheduler(let descriptor):
+			XCTAssertTrue(Thread.isMainThread)
+			return descriptor
+		case .inCustomScheduler(_, let descriptor):
+			XCTAssertFalse(Thread.isMainThread)
+			return descriptor
 		}
+	default: return Observable.empty()
 	}
-	
-	func changeTextValue(newText: String) -> Observable<RxStateType> {
-		return .just(TestState(text: newText))
-	}
-	
-	func error() -> Observable<RxStateType> {
-		return .error(TestError.someError)
-	}
-	
-	func completion() -> Observable<RxStateType> {
-		return .just(TestState(text: "Completed"))
-	}
+}
+
+fileprivate func changeTextValue(newText: String) -> Observable<RxStateType> {
+	return .just(TestState(text: newText))
+}
+
+fileprivate func error() -> Observable<RxStateType> {
+	return .error(TestError.someError)
+}
+
+fileprivate func completion() -> Observable<RxStateType> {
+	return .just(TestState(text: "Completed"))
 }

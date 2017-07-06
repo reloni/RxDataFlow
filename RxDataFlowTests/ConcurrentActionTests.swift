@@ -14,7 +14,7 @@ class ConcurrentActionTests: XCTestCase {
 	func testScheduleConcurrentActions() {
 		let serialScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let concurrentScheduler = TestScheduler(internalScheduler: ConcurrentDispatchQueueScheduler(qos: .utility))
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 8,
 		                                 serialActionScheduler: serialScheduler,
@@ -65,7 +65,7 @@ class ConcurrentActionTests: XCTestCase {
 	func testScheduleConcurrentActions_withOwnScheduler() {
 		let serialScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let concurrentScheduler = TestScheduler(internalScheduler: ConcurrentDispatchQueueScheduler(qos: .utility))
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 8,
 		                                 serialActionScheduler: serialScheduler,
@@ -121,7 +121,7 @@ class ConcurrentActionTests: XCTestCase {
 	func testScheduleConcurrentCompositeActions_1() {
 		let serialScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let concurrentScheduler = TestScheduler(internalScheduler: ConcurrentDispatchQueueScheduler(qos: .utility))
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 8,
 		                                 serialActionScheduler: serialScheduler,
@@ -167,7 +167,7 @@ class ConcurrentActionTests: XCTestCase {
 	func testScheduleConcurrentCompositeActions_2() {
 		let serialScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let concurrentScheduler = TestScheduler(internalScheduler: ConcurrentDispatchQueueScheduler(qos: .utility))
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 8,
 		                                 serialActionScheduler: serialScheduler,
@@ -215,7 +215,7 @@ class ConcurrentActionTests: XCTestCase {
 	func testScheduleConcurrentCompositeActions_3() {
 		let serialScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let concurrentScheduler = TestScheduler(internalScheduler: ConcurrentDispatchQueueScheduler(qos: .utility))
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 8,
 		                                 serialActionScheduler: serialScheduler,
@@ -267,7 +267,7 @@ class ConcurrentActionTests: XCTestCase {
 	func testScheduleConcurrentCompositeActions_4() {
 		let serialScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let concurrentScheduler = TestScheduler(internalScheduler: ConcurrentDispatchQueueScheduler(qos: .utility))
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 8,
 		                                 serialActionScheduler: serialScheduler,
@@ -315,7 +315,7 @@ class ConcurrentActionTests: XCTestCase {
 	func testScheduleConcurrentCompositeActions_withConcurrentError_5() {
 		let serialScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let concurrentScheduler = TestScheduler(internalScheduler: ConcurrentDispatchQueueScheduler(qos: .utility))
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 8,
 		                                 serialActionScheduler: serialScheduler,

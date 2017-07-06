@@ -13,7 +13,7 @@ import RxSwift
 class RxDataFlowTests: XCTestCase {
 	/// Test FlowController deinit if there is no actions to dispatch
 	func testDeinit() {
-		var store: TestFlowController! = TestFlowController(reducer: TestStoreReducer(),
+		var store: TestFlowController! = TestFlowController(reducer: testStoreReducer,
 		                               initialState: TestState(text: "Initial value"),
 		                               maxHistoryItems: 50)
 		
@@ -59,7 +59,7 @@ class RxDataFlowTests: XCTestCase {
 	
 	/// Test FlowController stop dispatching actions after deinit
 	func testDeinit_2() {
-		var store: TestFlowController! = TestFlowController(reducer: TestStoreReducer(),
+		var store: TestFlowController! = TestFlowController(reducer: testStoreReducer,
 		                                                    initialState: TestState(text: "Initial value"),
 		                                                    maxHistoryItems: 100)
 		
@@ -101,7 +101,7 @@ class RxDataFlowTests: XCTestCase {
 	}
 	
 	func testInitialState() {
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 50)
 		XCTAssertEqual(store.currentState.state.text, "Initial value")
@@ -113,7 +113,7 @@ class RxDataFlowTests: XCTestCase {
 	}
 	
 	func testReturnCurrentStateOnSubscribe() {
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 50)
 		let completeExpectation = expectation(description: "Should return initial state")
@@ -129,7 +129,7 @@ class RxDataFlowTests: XCTestCase {
 	}
 	
 	func testDispatchActionAfterInitialization() {
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 50,
 		                                 dispatchAction: ChangeTextValueAction(newText: "Change on init"))
@@ -149,7 +149,7 @@ class RxDataFlowTests: XCTestCase {
 	}
 	
 	func testPerformAction() {
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 50)
 		let completeExpectation = expectation(description: "Should change state")
@@ -171,7 +171,7 @@ class RxDataFlowTests: XCTestCase {
 	}
 	
 	func testTrimHistory() {
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 10)
 		let completeExpectation = expectation(description: "Should change state")
@@ -204,7 +204,7 @@ class RxDataFlowTests: XCTestCase {
 	
 	
 	func testPorformActionAndPropagateError() {
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 50)
 		let errorExpectation = expectation(description: "Should rise error")
@@ -227,7 +227,7 @@ class RxDataFlowTests: XCTestCase {
 	}
 	
 	func testContinueWorkAfterErrorAction() {
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 50)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
@@ -267,7 +267,7 @@ class RxDataFlowTests: XCTestCase {
 	
 	
 	func testSerialActionDispatch_1() {
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"), maxHistoryItems: 8)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
@@ -310,7 +310,7 @@ class RxDataFlowTests: XCTestCase {
 	}
 	
 	func testSerialActionDispatch_2() {
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"), maxHistoryItems: 8)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
@@ -361,7 +361,7 @@ class RxDataFlowTests: XCTestCase {
 	}
 	
 	func testDispatch_1() {
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 50)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
@@ -389,7 +389,7 @@ class RxDataFlowTests: XCTestCase {
 	}
 	
 	func testDispatchInCorrectScheduler_1() {
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"), maxHistoryItems: 8)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
@@ -423,7 +423,7 @@ class RxDataFlowTests: XCTestCase {
 	}
 	
 	func testDispatchInCorrectScheduler_2() {
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"), maxHistoryItems: 8)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
@@ -457,7 +457,7 @@ class RxDataFlowTests: XCTestCase {
 	
 	func testDispatchInDefaultScheduler() {
 		let storeScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 8,
 		                                 serialActionScheduler: storeScheduler,
@@ -495,7 +495,7 @@ class RxDataFlowTests: XCTestCase {
 	
 	func testDispatchInMainScheduer() {
 		let storeScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 8,
 		                                 serialActionScheduler: storeScheduler,
@@ -531,7 +531,7 @@ class RxDataFlowTests: XCTestCase {
 	}
 	
 	func testMultipleStateChangesInOneDescriptor() {
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"), maxHistoryItems: 8)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
@@ -572,7 +572,7 @@ class RxDataFlowTests: XCTestCase {
 	}
 	
 	func testDispatchReducerHandleFunctionInCorrectScheduler() {
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"), maxHistoryItems: 8)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
