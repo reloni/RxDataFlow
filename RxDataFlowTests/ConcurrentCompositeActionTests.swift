@@ -25,7 +25,7 @@ class ConcurrentCompositeActionTests: XCTestCase {
 	func testSerialExecutionOfConcurrentCompositeAction() {
 		let serialScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let concurrentScheduler = TestScheduler(internalScheduler: ConcurrentDispatchQueueScheduler(qos: .utility))
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 8,
 		                                 serialActionScheduler: serialScheduler,
@@ -74,7 +74,7 @@ class ConcurrentCompositeActionTests: XCTestCase {
 	func testMultipleSerialCompositeActions() {
 		let serialScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let concurrentScheduler = TestScheduler(internalScheduler: ConcurrentDispatchQueueScheduler(qos: .utility))
-		let store = RxDataFlowController(reducer: TestStoreReducer(),
+		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 8,
 		                                 serialActionScheduler: serialScheduler,
