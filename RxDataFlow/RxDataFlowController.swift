@@ -197,9 +197,9 @@ public class RxDataFlowController<Reducer: RxReducerType> : RxDataFlowController
 							self?.dispatch(fallback)
 						}
 					},
-			    onDispose: { [weak self] _ in _ = self?.actionsQueue.dequeue() })
-			.flatMap { _ in return Observable<Void>.just() }
-			.catchError { _ in .just() }
+			    onDispose: { [weak self] in _ = self?.actionsQueue.dequeue() })
+			.flatMap { _ in return Observable<Void>.just(()) }
+			.catchError { _ in .just(()) }
 	}
 	
 	private func observe(compositeAction: RxCompositeAction) -> Observable<(setBy: RxActionType, mutator: RxStateMutator<Reducer.State>)> {
