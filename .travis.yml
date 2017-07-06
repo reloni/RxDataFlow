@@ -7,10 +7,10 @@ env:
   - PROJECT=RxDataFlow.xcodeproj
   - FRAMEWORK_SCHEME=RxDataFlow-iOS
   - SDK=iphonesimulator
-  - DESTINATION_PLATFORM='platform=iOS Simulator,name=iPhone 6s,OS=10.3'
+  - DESTINATION_PLATFORM='platform=iOS Simulator,name=iPhone 6s,OS=10.3.1'
 
 before_install:
-  - SIMULATOR_ID=$(xcrun instruments -s | grep -o "iPhone 6s (10.1) \[.*\]" | grep -o "\[.*\]" | sed "s/^\[\(.*\)\]$/\1/")
+  - SIMULATOR_ID=$(xcrun instruments -s | grep -o "iPhone 6s (10.3.1) \[.*\]" | grep -o "\[.*\]" | sed "s/^\[\(.*\)\]$/\1/")
 
 before_script:
 - carthage version
