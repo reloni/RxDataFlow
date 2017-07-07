@@ -9,16 +9,24 @@
 import Foundation
 import RxSwift
 
-public protocol RxDataFlowControllerType {
-	func dispatch(_ action: RxActionType)
-}
-
+/**
+Describes type that may be used as state by flow controller
+*/
 public protocol RxStateType { }
 
+/**
+Function used by flow controller in order to mutate state.
+Flow controller passes current state to function and uses returned instance as new state
+*/
 public typealias RxStateMutator<State: RxStateType> = (State) -> (State)
 
+/**
+*/
 public typealias RxReducer<State: RxStateType> = (RxActionType, State) -> Observable<RxStateMutator<State>>
 
+/**
+Describes action that will be used by flow controller to produce new state
+*/
 public protocol RxActionType {
 	var scheduler: ImmediateSchedulerType? { get }
 	var isSerial: Bool { get }
@@ -55,7 +63,11 @@ fileprivate enum FlowControllerError: Error {
 }
 
 
-public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType {
+/**
+This class is responsible for storing state and dispatching new actions. 
+You initialize flow controller with initial state and reducer.
+*/
+public class RxDataFlowController<State: RxStateType> {
 	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject.asObservable().observeOn(serialActionScheduler) }
 	public var currentState: (setBy: RxActionType, state: State) { return stateStack.peek()! }
 	public var errors: Observable<(state: State, action: RxActionType, error: Error)> { return errorsSubject }
@@ -92,7 +104,7 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 	     dispatchAction: RxActionType? = nil) {
 		self.serialActionScheduler = serialActionScheduler
 		self.concurrentActionScheduler = concurrentActionScheduler
-		self.reducer = reducer//AnyRxReducer(reducer: reducer)
+		self.reducer = reducer
 		stateStack = FixedStack(capacity: maxHistoryItems)
 		stateStack.push((setBy: RxInitializationAction(), state: initialState))
 		
@@ -216,6 +228,15 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 		}
 	}
 	
+	/**
+	Dispatches an action.
+	Example of dispatching an action:
+	```
+	let data = ...
+	controller.dispatch(DataAction.updateData(data))
+	```
+	- parameter action: The action that is being dispatched by controller
+	*/
 	public func dispatch(_ action: RxActionType) {
 		serialActionScheduler.schedule((action, self)) { params in
 			return Observable<Void>.create { observer in
