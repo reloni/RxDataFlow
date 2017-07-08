@@ -28,14 +28,28 @@ public typealias RxReducer<State: RxStateType> = (RxActionType, State) -> Observ
 Describes action that will be used by flow controller to produce new state
 */
 public protocol RxActionType {
+	/// Specifies scheduler in which reducer function will be executed. If nil default scheduler will be used
 	var scheduler: ImmediateSchedulerType? { get }
+	/**
+	Specifies is this action serial or not. Flow controller executes serial actions one after another. 
+	If action takes a long time to complete you may set this property to false and flow controller will not wait this action to complete,
+	but execute next action immediately.
+	*/
 	var isSerial: Bool { get }
 }
 
+/**
+Special action that useful for grouping actions.
+Actions will be executed one after another, execution will be stoped on error.
+*/
 public struct RxCompositeAction : RxActionType {
 	public let scheduler: ImmediateSchedulerType?
-	public let actions: [RxActionType]
 	public let isSerial: Bool
+	
+	/// Actions to dispatch
+	public let actions: [RxActionType]
+	
+	/// Special action that will be dispatched in case of error
 	public let fallbackAction: RxActionType?
 	
 	public init(actions: [RxActionType], fallbackAction: RxActionType? = nil, isSerial: Bool = true, scheduler: ImmediateSchedulerType? = nil) {
@@ -53,6 +67,7 @@ public struct RxCompositeAction : RxActionType {
 	}
 }
 
+/// Initial action that used for placeholder to set initial state
 public struct RxInitializationAction : RxActionType {
 	public let isSerial = true
 	public var scheduler: ImmediateSchedulerType?
@@ -68,8 +83,17 @@ This class is responsible for storing state and dispatching new actions.
 You initialize flow controller with initial state and reducer.
 */
 public class RxDataFlowController<State: RxStateType> {
+	/**
+	Observable sequence that emits new state changes
+	*/
 	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject }
+	
+	/// Returns current state
 	public var currentState: (setBy: RxActionType, state: State) { return stateStack.peek()! }
+	
+	/**
+	Observable sequence that emits errors
+	*/
 	public var errors: Observable<(state: State, action: RxActionType, error: Error)> { return errorsSubject }
 	
 	let bag = DisposeBag()
@@ -83,6 +107,13 @@ public class RxDataFlowController<State: RxStateType> {
 	let currentStateSubject: BehaviorSubject<(setBy: RxActionType, state: State)>
 	let errorsSubject = PublishSubject<(state: State, action: RxActionType, error: Error)>()
 	
+	/**
+	Initialized new instance of RxDataFlowController
+	- parameter reducer: Reducer-function that will be executed for produce a new state
+	- parameter initialState: Initial state instance
+	- maxHistoryItems: Max state instances that will hold flow controller internally (default value is 1 and now changing will cause no effect)
+	- dispatchAction: Action that will be dispatched immediately after initialization
+	*/
 	public convenience init(reducer: @escaping RxReducer<State>,
 	                        initialState: State,
 	                        maxHistoryItems: UInt = 1,
