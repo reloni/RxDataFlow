@@ -15,7 +15,7 @@ struct FixedStack<T> {
 	var head = 0
 	
 	
-	public var isEmpty: Bool {
+	var isEmpty: Bool {
 		return count == 0
 	}
 	

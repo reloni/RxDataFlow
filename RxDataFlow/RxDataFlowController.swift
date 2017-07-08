@@ -68,7 +68,7 @@ This class is responsible for storing state and dispatching new actions.
 You initialize flow controller with initial state and reducer.
 */
 public class RxDataFlowController<State: RxStateType> {
-	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject.asObservable().observeOn(serialActionScheduler) }
+	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject }
 	public var currentState: (setBy: RxActionType, state: State) { return stateStack.peek()! }
 	public var errors: Observable<(state: State, action: RxActionType, error: Error)> { return errorsSubject }
 	
@@ -79,7 +79,6 @@ public class RxDataFlowController<State: RxStateType> {
 	
 	var stateStack: FixedStack<(setBy: RxActionType, state: State)>
 	var actionsQueue = Queue<RxActionType>()
-	var isActionExecuting = BehaviorSubject(value: false)
 	
 	let currentStateSubject: BehaviorSubject<(setBy: RxActionType, state: State)>
 	let errorsSubject = PublishSubject<(state: State, action: RxActionType, error: Error)>()

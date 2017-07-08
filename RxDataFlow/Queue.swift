@@ -8,13 +8,13 @@
 
 import RxSwift
 
-public struct Queue<T> {
+struct Queue<T> {
 	internal var array = [T?]()
 	internal var head = 0
 	
 	let currentItemSubject = PublishSubject<T>()
 	
-	public var isEmpty: Bool {
+	var isEmpty: Bool {
 		return count == 0
 	}
 	
@@ -22,14 +22,14 @@ public struct Queue<T> {
 		return array.count - head
 	}
 	
-	public mutating func enqueue(_ element: T) {
+	mutating func enqueue(_ element: T) {
 		array.append(element)
 		if count == 1 {
 			self.currentItemSubject.onNext(element)
 		}
 	}
 	
-	public mutating func dequeue() -> T? {
+	mutating func dequeue() -> T? {
 		guard head < array.count, let element = array[head] else { return nil }
 		
 		array[head] = nil
@@ -48,7 +48,7 @@ public struct Queue<T> {
 		return element
 	}
 	
-	public func peek() -> T? {
+	func peek() -> T? {
 		if isEmpty {
 			return nil
 		} else {
