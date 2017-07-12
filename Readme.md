@@ -11,6 +11,11 @@ RxDataFlow is another implementation of unidirectional data flow architecture. T
 
 More information will be added soon:)
 
+## Components
+- State: A data structure that describes state of application.
+- Reducer: A pure function that creates new state on base on action and current state.
+- Action: Actions describe state change. Reducer produce state changes according to dispatched action.
+
 ## Table of Contents
 
 ## Dependencies
