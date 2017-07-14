@@ -16,12 +16,17 @@ More information will be added soon:)
 - Reducer: A pure function that creates new state on base on action and current state.
 - Action: Actions describe state change. Reducer produce state changes according to dispatched action.
 <img src="assets/FlowControllerSimple.png" width="100%" height="100%"/>
+
 1. The `View Controller/View Model` creates an `Action` and dispatch it to the `FlowController`.
+
 2. The `FlowController` switches to appropriate scheduler and sends the `State` and `Action` to the `Reducer`.
+
 3. The `Reducer` receives the current `App State` and the dispatched `Action`, computes and returns **new** `State`.
+
 4. The `FlowController` saves new `State` and sends it to the subscribers.
   - In case of an error `FlowController` doesn't change `State` and sends `Error` to all subscribers instead.
   - It's possible to setup special `FallbackAction` that will be dispatched in case of an error (see CompositeAction).
+
 5. Subscriber receives new `State` and operate accordingly: `View Model` may transform `State`, `View Controller` may directly bind data to the UI.
 
 ## Dependencies
