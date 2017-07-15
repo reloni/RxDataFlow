@@ -11,6 +11,20 @@ import Foundation
 import RxSwift
 import XCTest
 
+extension RxDataFlowController {
+	convenience init(reducer: @escaping RxReducer<State>,
+	                 initialState: State,
+	                 maxHistoryItems: UInt,
+	                 dispatchAction: RxActionType? = nil) {
+		self.init(reducer: reducer,
+		          initialState: initialState,
+		          maxHistoryItems: maxHistoryItems,
+		          serialActionScheduler: SerialDispatchQueueScheduler(qos: .utility, internalSerialQueueName: "com.RxDataFlowController.SerialActionScheduler"),
+		          concurrentActionScheduler: SerialDispatchQueueScheduler(qos: .utility, internalSerialQueueName: "com.RxDataFlowController.ConcurrentActionScheduler"),
+		          dispatchAction: dispatchAction)
+	}
+}
+
 final class TestFlowController<State: RxStateType> : RxDataFlowController<State> {
 	var onDeinit: ((TestFlowController) -> ())?
 	deinit {
