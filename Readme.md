@@ -17,13 +17,13 @@ More information will be added soon:)
 - [RxSwift](https://github.com/ReactiveX/RxSwift) >= 3.4.0
 
 ## Requirements
-- Xcode 8.3
-- Swift 3.0
+- Xcode 9.0
+- Swift 4.0
 
 ## Installation
 - Using [Carthage](https://github.com/Carthage/Carthage)
  ```
-github "reloni/RxDataFlow" ~> 0.9.0
+github "reloni/RxDataFlow"
 ```
 
 ## Example Projects
