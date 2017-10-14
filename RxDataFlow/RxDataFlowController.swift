@@ -66,7 +66,6 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 	let concurrentActionScheduler: ImmediateSchedulerType
 	
 	var stateStack: FixedStack<(setBy: RxActionType, state: State)>
-//	var actionsQueue = Queue<RxActionType>()
 	let actionsSubject: PublishSubject<RxActionType> = PublishSubject()
 	var isActionExecuting = BehaviorSubject(value: false)
 	
@@ -93,7 +92,7 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 	     dispatchAction: RxActionType? = nil) {
 		self.serialActionScheduler = serialActionScheduler
 		self.concurrentActionScheduler = concurrentActionScheduler
-		self.reducer = reducer//AnyRxReducer(reducer: reducer)
+		self.reducer = reducer
 		stateStack = FixedStack(capacity: maxHistoryItems)
 		stateStack.push((setBy: RxInitializationAction(), state: initialState))
 		
@@ -131,10 +130,6 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 	private func subscribe() {
 		currentStateSubject.skip(1).subscribe(onNext: { [weak self] newState in self?.stateStack.push(newState) }).disposed(by: bag)
 		
-//		actionsQueue.currentItemSubject.observeOn(serialActionScheduler)
-//			.flatMap { [weak self] action -> Observable<Void> in
-//				return self?.observe(action: action) ?? .empty()
-//			}.subscribe().disposed(by: bag)
 		actionsSubject
 			.map { [weak self] action -> Observable<Void> in return self?.observe(action: action) ?? .empty() }
 			.merge(maxConcurrent: 1)
@@ -167,23 +162,9 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 
 				return Disposables.create()
 			}
-			
-//			actionDescriptor
-//				.observeOn(serialActionScheduler)
-//				.do(onNext: { [weak self] next in
-//					guard let newState = self?.mutateState(with: next.mutator) else { return }
-//					self?.currentStateSubject.onNext((setBy: next.setBy, state: newState))
-//					},
-//				    onError: { [weak self] in self?.propagate(error: $0, from: action) })
-//				.subscribeOn(action.scheduler ?? concurrentActionScheduler)
-//				.subscribe()
-//				.disposed(by: bag)
-//
-//			return .empty()
 	}
 	
 	private func observe(action: RxActionType) -> Observable<Void> {
-		print("observe: \(action)")
 		let descriptor: Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> = { [weak self] in
 			guard let object = self else { return .empty() }
 			
@@ -205,8 +186,7 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 						if let fallback = (action as? RxCompositeAction)?.fallbackAction {
 							self?.dispatch(fallback)
 						}
-					}/*,
-			    onDispose: { [weak self] in _ = self?.actionsQueue.dequeue() } */)
+					})
 			.flatMap { _ in return Observable<Void>.just(()) }
 			.catchError { _ in .just(()) }
 	}
@@ -214,22 +194,7 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 	private func observe(compositeAction: RxCompositeAction) -> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> {
 		return Observable.create { [weak self] observer in
 			guard let object = self else { return Disposables.create() }
-			
-//			let disposable = Observable
-//				.from(compositeAction.actions.map { Observable.just($0) })
-//				.merge(maxConcurrent: 1)
-//				.map { action in
-//					object
-//						.schedule(actionDescriptor: object.descriptor(for: action, owner: compositeAction), for: action)
-//						.catchError { .error(FlowControllerError.compositeActionError(erroredAction: action, error: $0)) }
-//				}
-//				.observeOn(object.serialActionScheduler)
-//				.merge(maxConcurrent: 1)
-//				.do(onNext: { observer.onNext((setBy: $0.setBy, mutator: $0.mutator)) },
-//				    onError: { observer.onError($0) },
-//				    onDispose: { observer.onCompleted() })
-//				.subscribe()
-			
+
 			let scheduledActions = compositeAction.actions.map { action in
 				object
 					.schedule(actionDescriptor: object.descriptor(for: action, owner: compositeAction), for: action)
@@ -245,26 +210,6 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 				    onError: { observer.onError($0) },
 				    onDispose: { observer.onCompleted() })
 				.subscribe()
-//
-//			var compositeQueue = Queue<RxActionType>()
-//
-//			let disposable = compositeQueue.currentItemSubject.observeOn(object.serialActionScheduler).flatMap { action -> Observable<RxStateType> in
-//				return Observable.create { _ in
-//					let descriptor = object.descriptor(for: action, owner: compositeAction).catchError { error -> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> in
-//						return .error(FlowControllerError.compositeActionError(erroredAction: action, error: error))
-//					}
-//					let subscription = object.schedule(actionDescriptor: descriptor, for: action)
-//						.observeOn(object.serialActionScheduler)
-//						.do(onNext: { observer.onNext((setBy: $0.setBy, mutator: $0.mutator)) },
-//						    onError: { observer.onError($0) },
-//						    onCompleted: { _ = compositeQueue.dequeue() },
-//						    onDispose: { if compositeQueue.count == 0 { observer.onCompleted() } })
-//						.subscribe()
-//					return Disposables.create { subscription.dispose() }
-//				}
-//			}.subscribe()
-//
-//			for a in compositeAction.actions { compositeQueue.enqueue(a) }
 			
 			return Disposables.create {
 				disposable.dispose()
@@ -274,11 +219,5 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 	
 	public func dispatch(_ action: RxActionType) {
 		actionsSubject.onNext(action)
-//		serialActionScheduler.schedule((action, self)) { params in
-//			return Observable<Void>.create { observer in
-//				params.1.actionsQueue.enqueue(params.0)
-//				return Disposables.create()
-//				}.subscribe()
-//			}.disposed(by: bag)
 	}
 }
