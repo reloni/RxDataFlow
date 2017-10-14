@@ -17,9 +17,7 @@
 		6E4D970E1F0D71E200B1CC49 /* CompositeActionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E0DE6231E633440001DEC9F /* CompositeActionsTests.swift */; };
 		6E4D970F1F0D726200B1CC49 /* ConcurrentActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E4364871EC05A7D00D126B2 /* ConcurrentActionTests.swift */; };
 		6E4D97101F0D75B100B1CC49 /* ConcurrentCompositeActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E75DF391ECAAFBD00C911B4 /* ConcurrentCompositeActionTests.swift */; };
-		6EB05CC91E7C1A3000705C9A /* QueueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB05CC81E7C1A3000705C9A /* QueueTests.swift */; };
 		6EB46E6E1F0D6FB000166EE0 /* RxDataFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E130F301DCA66A2006DC5ED /* RxDataFlowTests.swift */; };
-		6ED004B81E0C4AAE00CA6E7C /* Queue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ED004B71E0C4AAE00CA6E7C /* Queue.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,8 +43,6 @@
 		6E4364871EC05A7D00D126B2 /* ConcurrentActionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConcurrentActionTests.swift; sourceTree = "<group>"; };
 		6E75DF391ECAAFBD00C911B4 /* ConcurrentCompositeActionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConcurrentCompositeActionTests.swift; sourceTree = "<group>"; };
 		6E97D66D1E5EDA4A00EC8305 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		6EB05CC81E7C1A3000705C9A /* QueueTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueueTests.swift; sourceTree = "<group>"; };
-		6ED004B71E0C4AAE00CA6E7C /* Queue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Queue.swift; sourceTree = "<group>"; };
 		6EE39C4B1E5ED9520045A6E8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -95,7 +91,6 @@
 			children = (
 				6E2473121DCA6A1800408217 /* RxDataFlowController.swift */,
 				6E111B8C1DCFA98B006C8FE2 /* FixedStack.swift */,
-				6ED004B71E0C4AAE00CA6E7C /* Queue.swift */,
 				6EE39C4B1E5ED9520045A6E8 /* Info.plist */,
 			);
 			path = RxDataFlow;
@@ -109,7 +104,6 @@
 				6E111B8E1DCFAAD6006C8FE2 /* FixedStackTests.swift */,
 				6E130F301DCA66A2006DC5ED /* RxDataFlowTests.swift */,
 				6E0DE6231E633440001DEC9F /* CompositeActionsTests.swift */,
-				6EB05CC81E7C1A3000705C9A /* QueueTests.swift */,
 				6E4364871EC05A7D00D126B2 /* ConcurrentActionTests.swift */,
 				6E75DF391ECAAFBD00C911B4 /* ConcurrentCompositeActionTests.swift */,
 			);
@@ -258,7 +252,6 @@
 			files = (
 				6E111B8D1DCFA98B006C8FE2 /* FixedStack.swift in Sources */,
 				6E2473131DCA6A1800408217 /* RxDataFlowController.swift in Sources */,
-				6ED004B81E0C4AAE00CA6E7C /* Queue.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -268,7 +261,6 @@
 			files = (
 				6E111B8F1DCFAAD6006C8FE2 /* FixedStackTests.swift in Sources */,
 				6E11D4D31E9033E10032ACB9 /* SupportTests.swift in Sources */,
-				6EB05CC91E7C1A3000705C9A /* QueueTests.swift in Sources */,
 				6E4D970E1F0D71E200B1CC49 /* CompositeActionsTests.swift in Sources */,
 				6E4D97101F0D75B100B1CC49 /* ConcurrentCompositeActionTests.swift in Sources */,
 				6E4D970F1F0D726200B1CC49 /* ConcurrentActionTests.swift in Sources */,
