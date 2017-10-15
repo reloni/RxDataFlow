@@ -26,7 +26,6 @@ class ConcurrentCompositeActionTests: XCTestCase {
 		let serialScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
-		                                 maxHistoryItems: 8,
 		                                 scheduler: serialScheduler)
 		
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
@@ -34,6 +33,9 @@ class ConcurrentCompositeActionTests: XCTestCase {
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
 			completeExpectation.fulfill()
 		})
+		
+		var stateHistory = [String]()
+		_ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
 		
 		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
 		
@@ -65,14 +67,13 @@ class ConcurrentCompositeActionTests: XCTestCase {
 		                                      "Completed"]
 		
 		XCTAssertEqual(8, serialScheduler.scheduleCounter)
-		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
+		XCTAssertEqual(expectedStateHistoryTextValues, stateHistory)
 	}
 	
 	func testMultipleSerialCompositeActions() {
 		let serialScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
-		                                 maxHistoryItems: 8,
 		                                 scheduler: serialScheduler)
 		
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
@@ -80,6 +81,9 @@ class ConcurrentCompositeActionTests: XCTestCase {
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
 			completeExpectation.fulfill()
 		})
+		
+		var stateHistory = [String]()
+		_ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
 		
 		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
 		
@@ -112,6 +116,6 @@ class ConcurrentCompositeActionTests: XCTestCase {
 		                                      "Completed"]
 		
 		XCTAssertEqual(9, serialScheduler.scheduleCounter)
-		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
+		XCTAssertEqual(expectedStateHistoryTextValues, stateHistory)
 	}
 }

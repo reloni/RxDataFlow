@@ -57,44 +57,41 @@ fileprivate enum FlowControllerError: Error {
 
 public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType {
 	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject.asObservable().observeOn(scheduler) }
-	public var currentState: (setBy: RxActionType, state: State) { return stateStack.peek()! }
+	public var currentState: (setBy: RxActionType, state: State) { return try! currentStateSubject.value() }
 	public var errors: Observable<(state: State, action: RxActionType, error: Error)> { return errorsSubject }
 	
 	let bag = DisposeBag()
 	let reducer: RxReducer<State>
 	let scheduler: ImmediateSchedulerType
 	
-	var stateStack: FixedStack<(setBy: RxActionType, state: State)>
 	let actionsSubject: PublishSubject<RxActionType> = PublishSubject()
-	var isActionExecuting = BehaviorSubject(value: false)
 	
 	let currentStateSubject: BehaviorSubject<(setBy: RxActionType, state: State)>
 	let errorsSubject = PublishSubject<(state: State, action: RxActionType, error: Error)>()
 	
 	public convenience init(reducer: @escaping RxReducer<State>,
 	                        initialState: State,
-	                        maxHistoryItems: UInt = 1,
 	                        dispatchAction: RxActionType? = nil) {
 		self.init(reducer: reducer,
 		          initialState: initialState,
-		          maxHistoryItems: maxHistoryItems,
 		          scheduler: SerialDispatchQueueScheduler(qos: .utility, internalSerialQueueName: "com.RxDataFlowController.Scheduler"),
 		          dispatchAction: dispatchAction)
 	}
 	
 	init(reducer: @escaping RxReducer<State>,
 	     initialState: State,
-	     maxHistoryItems: UInt = 50,
 	     scheduler: ImmediateSchedulerType,
 	     dispatchAction: RxActionType? = nil) {
 		self.scheduler = scheduler
 		self.reducer = reducer
-		stateStack = FixedStack(capacity: maxHistoryItems)
-		stateStack.push((setBy: RxInitializationAction(), state: initialState))
 		
 		currentStateSubject = BehaviorSubject(value: (setBy: RxInitializationAction(), state: initialState))
-		
-		subscribe()
+
+		actionsSubject
+			.map { [weak self] action -> Observable<Void> in return self?.observe(action: action) ?? .empty() }
+			.merge(maxConcurrent: 1)
+			.subscribe()
+			.disposed(by: bag)
 		
 		if let dispatchAction = dispatchAction {
 			dispatch(dispatchAction)
@@ -121,16 +118,6 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 			.flatMap { act in object.reducer(act, object.currentState.state).subscribeOn(schedulerForAction) }
 			.observeOn(schedulerForAction)
 			.flatMap { result -> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> in return .just((setBy: action, mutator: result)) }
-	}
-	
-	private func subscribe() {
-		currentStateSubject.skip(1).subscribe(onNext: { [weak self] newState in self?.stateStack.push(newState) }).disposed(by: bag)
-		
-		actionsSubject
-			.map { [weak self] action -> Observable<Void> in return self?.observe(action: action) ?? .empty() }
-			.merge(maxConcurrent: 1)
-			.subscribe()
-			.disposed(by: bag)
 	}
 	
 	private func mutateState(with mutator: RxStateMutator<State>) -> State {
