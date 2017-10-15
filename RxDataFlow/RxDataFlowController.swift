@@ -56,14 +56,13 @@ fileprivate enum FlowControllerError: Error {
 
 
 public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType {
-	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject.asObservable().observeOn(serialActionScheduler) }
+	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject.asObservable().observeOn(scheduler) }
 	public var currentState: (setBy: RxActionType, state: State) { return stateStack.peek()! }
 	public var errors: Observable<(state: State, action: RxActionType, error: Error)> { return errorsSubject }
 	
 	let bag = DisposeBag()
 	let reducer: RxReducer<State>
-	let serialActionScheduler: ImmediateSchedulerType
-	let concurrentActionScheduler: ImmediateSchedulerType
+	let scheduler: ImmediateSchedulerType
 	
 	var stateStack: FixedStack<(setBy: RxActionType, state: State)>
 	let actionsSubject: PublishSubject<RxActionType> = PublishSubject()
@@ -79,19 +78,16 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 		self.init(reducer: reducer,
 		          initialState: initialState,
 		          maxHistoryItems: maxHistoryItems,
-		          serialActionScheduler: SerialDispatchQueueScheduler(qos: .utility, internalSerialQueueName: "com.RxDataFlowController.SerialActionScheduler"),
-		          concurrentActionScheduler: SerialDispatchQueueScheduler(qos: .utility, internalSerialQueueName: "com.RxDataFlowController.ConcurrentActionScheduler"),
+		          scheduler: SerialDispatchQueueScheduler(qos: .utility, internalSerialQueueName: "com.RxDataFlowController.Scheduler"),
 		          dispatchAction: dispatchAction)
 	}
 	
 	init(reducer: @escaping RxReducer<State>,
 	     initialState: State,
 	     maxHistoryItems: UInt = 50,
-	     serialActionScheduler: ImmediateSchedulerType,
-	     concurrentActionScheduler: ImmediateSchedulerType,
+	     scheduler: ImmediateSchedulerType,
 	     dispatchAction: RxActionType? = nil) {
-		self.serialActionScheduler = serialActionScheduler
-		self.concurrentActionScheduler = concurrentActionScheduler
+		self.scheduler = scheduler
 		self.reducer = reducer
 		stateStack = FixedStack(capacity: maxHistoryItems)
 		stateStack.push((setBy: RxInitializationAction(), state: initialState))
@@ -115,7 +111,7 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 	
 	private func scheduler(for action: RxActionType, owner: RxCompositeAction? = nil) -> ImmediateSchedulerType {
 		let actionScheduler =  action.scheduler ?? owner?.scheduler
-		return actionScheduler ?? (action.isSerial ? serialActionScheduler : concurrentActionScheduler)
+		return actionScheduler ?? scheduler
 	}
 	
 	private func descriptor(for action: RxActionType, owner: RxCompositeAction? = nil) -> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> {
@@ -143,18 +139,18 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 	
 	private func schedule(actionDescriptor: Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)>, for action: RxActionType)
 		-> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> {
-			guard !action.isSerial else { return actionDescriptor.observeOn(serialActionScheduler) }
+			guard !action.isSerial else { return actionDescriptor.observeOn(scheduler) }
 			
 			return Observable.create { [weak self] observer in
 				guard let object = self else { return Disposables.create() }
 				actionDescriptor
-					.observeOn(object.serialActionScheduler)
+					.observeOn(object.scheduler)
 					.do(onNext: { [weak self] next in
 						guard let newState = self?.mutateState(with: next.mutator) else { return }
 						self?.currentStateSubject.onNext((setBy: next.setBy, state: newState))
 						},
 					    onError: { [weak self] in self?.propagate(error: $0, from: action) })
-					.subscribeOn(action.scheduler ?? object.concurrentActionScheduler)
+					.subscribeOn(action.scheduler ?? object.scheduler)
 					.subscribe()
 					.disposed(by: object.bag)
 
@@ -176,7 +172,7 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 		}()
 		
 		return schedule(actionDescriptor: descriptor, for: action)
-			.observeOn(serialActionScheduler)
+			.observeOn(scheduler)
 			.do(onNext: { [weak self] next in
 				guard let newState = self?.mutateState(with: next.mutator) else { return }
 				self?.currentStateSubject.onNext((setBy: next.setBy, state: newState))
@@ -203,9 +199,9 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 
 			let disposable = Observable
 				.from(scheduledActions)
-				.observeOn(object.serialActionScheduler)
+				.observeOn(object.scheduler)
 				.merge(maxConcurrent: 1)
-				.observeOn(object.serialActionScheduler)
+				.observeOn(object.scheduler)
 				.do(onNext: { observer.onNext((setBy: $0.setBy, mutator: $0.mutator)) },
 				    onError: { observer.onError($0) },
 				    onDispose: { observer.onCompleted() })

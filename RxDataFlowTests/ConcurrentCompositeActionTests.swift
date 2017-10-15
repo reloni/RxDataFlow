@@ -24,12 +24,10 @@ class ConcurrentCompositeActionTests: XCTestCase {
 	
 	func testSerialExecutionOfConcurrentCompositeAction() {
 		let serialScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
-		let concurrentScheduler = TestScheduler(internalScheduler: ConcurrentDispatchQueueScheduler(qos: .utility))
 		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 8,
-		                                 serialActionScheduler: serialScheduler,
-		                                 concurrentActionScheduler: concurrentScheduler)
+		                                 scheduler: serialScheduler)
 		
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
@@ -66,19 +64,16 @@ class ConcurrentCompositeActionTests: XCTestCase {
 		                                      "Action executed (5)",
 		                                      "Completed"]
 		
-		XCTAssertEqual(7, serialScheduler.scheduleCounter)
-		XCTAssertEqual(1, concurrentScheduler.scheduleCounter)
+		XCTAssertEqual(8, serialScheduler.scheduleCounter)
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
 	
 	func testMultipleSerialCompositeActions() {
 		let serialScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
-		let concurrentScheduler = TestScheduler(internalScheduler: ConcurrentDispatchQueueScheduler(qos: .utility))
 		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 8,
-		                                 serialActionScheduler: serialScheduler,
-		                                 concurrentActionScheduler: concurrentScheduler)
+		                                 scheduler: serialScheduler)
 		
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
@@ -116,8 +111,7 @@ class ConcurrentCompositeActionTests: XCTestCase {
 		                                      "Action executed (5)",
 		                                      "Completed"]
 		
-		XCTAssertEqual(7, serialScheduler.scheduleCounter)
-		XCTAssertEqual(2, concurrentScheduler.scheduleCounter)
+		XCTAssertEqual(9, serialScheduler.scheduleCounter)
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
 }

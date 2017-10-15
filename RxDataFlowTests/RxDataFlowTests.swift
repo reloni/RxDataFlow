@@ -460,8 +460,7 @@ class RxDataFlowTests: XCTestCase {
 		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 8,
-		                                 serialActionScheduler: storeScheduler,
-		                                 concurrentActionScheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)))
+		                                 scheduler: storeScheduler)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
@@ -498,8 +497,7 @@ class RxDataFlowTests: XCTestCase {
 		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 8,
-		                                 serialActionScheduler: storeScheduler,
-		                                 concurrentActionScheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)))
+		                                 scheduler: storeScheduler)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in

@@ -172,8 +172,7 @@ class CompositeActions: XCTestCase {
 		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 50,
-		                                 serialActionScheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)),
-		                                 concurrentActionScheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)))
+		                                 scheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)))
 		
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
@@ -223,7 +222,7 @@ class CompositeActions: XCTestCase {
 		XCTAssertEqual(1, scheduler1.scheduleCounter)
 		XCTAssertEqual(1, scheduler2.scheduleCounter)
 		XCTAssertEqual(2, scheduler3.scheduleCounter)
-		XCTAssertEqual(4, (store.serialActionScheduler as! TestScheduler).scheduleCounter)
+		XCTAssertEqual(4, (store.scheduler as! TestScheduler).scheduleCounter)
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
 	
@@ -231,8 +230,7 @@ class CompositeActions: XCTestCase {
 		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 50,
-		                                 serialActionScheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)),
-		                                 concurrentActionScheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)))
+		                                 scheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)))
 		
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
@@ -290,12 +288,10 @@ class CompositeActions: XCTestCase {
 	
 	func testFallbackAction() {
 		let serialScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
-		let concurrentScheduler = TestScheduler(internalScheduler: ConcurrentDispatchQueueScheduler(qos: .utility))
 		let store = RxDataFlowController(reducer: testStoreReducer,
 		                                 initialState: TestState(text: "Initial value"),
 		                                 maxHistoryItems: 8,
-		                                 serialActionScheduler: serialScheduler,
-		                                 concurrentActionScheduler: concurrentScheduler)
+		                                 scheduler: serialScheduler)
 		
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
@@ -342,7 +338,6 @@ class CompositeActions: XCTestCase {
 		                                      "Completed"]
 		
 		XCTAssertEqual(9, serialScheduler.scheduleCounter)
-		XCTAssertEqual(0, concurrentScheduler.scheduleCounter)
 		XCTAssertEqual(2, errorCounter)
 		XCTAssertEqual(expectedStateHistoryTextValues, store.stateStack.array.flatMap { $0 }.map { $0.state.text })
 	}
