@@ -57,7 +57,7 @@ class RxDataFlowTests: XCTestCase {
 		XCTAssertEqual(6, stateHistory.count)
 	}
 	
-	/// Test FlowController dispatch all stored actions before finally deinit
+	/// Test FlowController stop action execution on deinit
 	func testDeinit_2() {
 		var store: TestFlowController! = TestFlowController(reducer: testStoreReducer,
 		                                                    initialState: TestState(text: "Initial value"))
@@ -79,14 +79,14 @@ class RxDataFlowTests: XCTestCase {
 		
 		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
 		
-		for i in 0..<50 {
+		for i in 0..<1000 {
 			let action = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed \(i)")).delay(0.001, scheduler: delayScheduler), isSerial: true)
 			store.dispatch(action)
 		}
 		
 		store.dispatch(CompletionAction())
 		
-		DispatchQueue.main.asyncAfter(deadline: .now() + 0.001) {
+		DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
 			store = nil
 		}
 		
@@ -95,9 +95,9 @@ class RxDataFlowTests: XCTestCase {
 		
 		
 		XCTAssertEqual(deinitResult, .completed)
-		XCTAssertEqual(completeResult, .completed)
+		XCTAssertEqual(completeResult, .timedOut)
 		XCTAssertNotNil(stateHistory)
-		XCTAssertTrue(stateHistory.count == 52)
+		XCTAssertTrue(stateHistory.count < 1000)
 	}
 	
 	func testInitialState() {

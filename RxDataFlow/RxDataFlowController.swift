@@ -113,9 +113,8 @@ public class RxDataFlowController<State: RxStateType> : RxDataFlowControllerType
 	
 	private func descriptor(for action: RxActionType, owner: RxCompositeAction? = nil) -> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> {
 		let schedulerForAction = scheduler(for: action, owner: owner)
-		let object = self
 		return Observable<RxActionType>.from([action], scheduler: schedulerForAction)
-			.flatMap { act in object.reducer(act, object.currentState.state).subscribeOn(schedulerForAction) }
+			.flatMap { [weak self] act in return self == nil ? .empty() : self!.reducer(act, self!.currentState.state).subscribeOn(schedulerForAction) }
 			.observeOn(schedulerForAction)
 			.flatMap { result -> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> in return .just((setBy: action, mutator: result)) }
 	}
