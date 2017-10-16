@@ -7,19 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		6E111B8D1DCFA98B006C8FE2 /* FixedStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E111B8C1DCFA98B006C8FE2 /* FixedStack.swift */; };
-		6E111B8F1DCFAAD6006C8FE2 /* FixedStackTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E111B8E1DCFAAD6006C8FE2 /* FixedStackTests.swift */; };
 		6E11D4D31E9033E10032ACB9 /* SupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E11D4D21E9033E10032ACB9 /* SupportTests.swift */; };
 		6E130F2C1DCA66A2006DC5ED /* RxDataFlow.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E130F221DCA66A1006DC5ED /* RxDataFlow.framework */; };
 		6E2473131DCA6A1800408217 /* RxDataFlowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E2473121DCA6A1800408217 /* RxDataFlowController.swift */; };
 		6E2473161DCA6AB800408217 /* RxSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E2473151DCA6AB800408217 /* RxSwift.framework */; };
 		6E3E18011DCE28D20087604D /* RxSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E2473151DCA6AB800408217 /* RxSwift.framework */; };
 		6E4D970E1F0D71E200B1CC49 /* CompositeActionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E0DE6231E633440001DEC9F /* CompositeActionsTests.swift */; };
-		6E4D970F1F0D726200B1CC49 /* ConcurrentActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E4364871EC05A7D00D126B2 /* ConcurrentActionTests.swift */; };
-		6E4D97101F0D75B100B1CC49 /* ConcurrentCompositeActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E75DF391ECAAFBD00C911B4 /* ConcurrentCompositeActionTests.swift */; };
-		6EB05CC91E7C1A3000705C9A /* QueueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB05CC81E7C1A3000705C9A /* QueueTests.swift */; };
-		6EB46E6E1F0D6FB000166EE0 /* RxDataFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E130F301DCA66A2006DC5ED /* RxDataFlowTests.swift */; };
-		6ED004B81E0C4AAE00CA6E7C /* Queue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ED004B71E0C4AAE00CA6E7C /* Queue.swift */; };
+		6E7DC7F21F93C83B00608F26 /* ConcurrentActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E4364871EC05A7D00D126B2 /* ConcurrentActionTests.swift */; };
+		6E7DC7F31F93C8AE00608F26 /* ConcurrentCompositeActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E75DF391ECAAFBD00C911B4 /* ConcurrentCompositeActionTests.swift */; };
+		6E7DC7F41F93C8D400608F26 /* RxDataFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E130F301DCA66A2006DC5ED /* RxDataFlowTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,8 +30,6 @@
 
 /* Begin PBXFileReference section */
 		6E0DE6231E633440001DEC9F /* CompositeActionsTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CompositeActionsTests.swift; sourceTree = "<group>"; };
-		6E111B8C1DCFA98B006C8FE2 /* FixedStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FixedStack.swift; sourceTree = "<group>"; };
-		6E111B8E1DCFAAD6006C8FE2 /* FixedStackTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FixedStackTests.swift; sourceTree = "<group>"; };
 		6E11D4D21E9033E10032ACB9 /* SupportTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SupportTests.swift; sourceTree = "<group>"; };
 		6E130F221DCA66A1006DC5ED /* RxDataFlow.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RxDataFlow.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6E130F2B1DCA66A2006DC5ED /* RxDataFlowTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RxDataFlowTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -44,9 +38,8 @@
 		6E2473151DCA6AB800408217 /* RxSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RxSwift.framework; path = Carthage/Build/iOS/RxSwift.framework; sourceTree = "<group>"; };
 		6E4364871EC05A7D00D126B2 /* ConcurrentActionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConcurrentActionTests.swift; sourceTree = "<group>"; };
 		6E75DF391ECAAFBD00C911B4 /* ConcurrentCompositeActionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConcurrentCompositeActionTests.swift; sourceTree = "<group>"; };
+		6E7DC7F01F93C5F100608F26 /* RxBlocking.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RxBlocking.framework; path = Carthage/Build/iOS/RxBlocking.framework; sourceTree = "<group>"; };
 		6E97D66D1E5EDA4A00EC8305 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		6EB05CC81E7C1A3000705C9A /* QueueTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueueTests.swift; sourceTree = "<group>"; };
-		6ED004B71E0C4AAE00CA6E7C /* Queue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Queue.swift; sourceTree = "<group>"; };
 		6EE39C4B1E5ED9520045A6E8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -94,8 +87,6 @@
 			isa = PBXGroup;
 			children = (
 				6E2473121DCA6A1800408217 /* RxDataFlowController.swift */,
-				6E111B8C1DCFA98B006C8FE2 /* FixedStack.swift */,
-				6ED004B71E0C4AAE00CA6E7C /* Queue.swift */,
 				6EE39C4B1E5ED9520045A6E8 /* Info.plist */,
 			);
 			path = RxDataFlow;
@@ -106,10 +97,8 @@
 			children = (
 				6E97D66D1E5EDA4A00EC8305 /* Info.plist */,
 				6E11D4D21E9033E10032ACB9 /* SupportTests.swift */,
-				6E111B8E1DCFAAD6006C8FE2 /* FixedStackTests.swift */,
 				6E130F301DCA66A2006DC5ED /* RxDataFlowTests.swift */,
 				6E0DE6231E633440001DEC9F /* CompositeActionsTests.swift */,
-				6EB05CC81E7C1A3000705C9A /* QueueTests.swift */,
 				6E4364871EC05A7D00D126B2 /* ConcurrentActionTests.swift */,
 				6E75DF391ECAAFBD00C911B4 /* ConcurrentCompositeActionTests.swift */,
 			);
@@ -119,6 +108,7 @@
 		6E2473141DCA6AB700408217 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				6E7DC7F01F93C5F100608F26 /* RxBlocking.framework */,
 				6E2473151DCA6AB800408217 /* RxSwift.framework */,
 			);
 			name = Frameworks;
@@ -181,18 +171,19 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0810;
-				LastUpgradeCheck = 0820;
+				LastUpgradeCheck = 0900;
 				ORGANIZATIONNAME = "Anton Efimenko";
 				TargetAttributes = {
 					6E130F211DCA66A1006DC5ED = {
 						CreatedOnToolsVersion = 8.1;
 						DevelopmentTeam = SJMSRXG797;
-						LastSwiftMigration = 0810;
+						LastSwiftMigration = 0900;
 						ProvisioningStyle = Automatic;
 					};
 					6E130F2A1DCA66A2006DC5ED = {
 						CreatedOnToolsVersion = 8.1;
 						DevelopmentTeam = SJMSRXG797;
+						LastSwiftMigration = 0900;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -255,9 +246,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6E111B8D1DCFA98B006C8FE2 /* FixedStack.swift in Sources */,
 				6E2473131DCA6A1800408217 /* RxDataFlowController.swift in Sources */,
-				6ED004B81E0C4AAE00CA6E7C /* Queue.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -265,13 +254,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6E111B8F1DCFAAD6006C8FE2 /* FixedStackTests.swift in Sources */,
+				6E7DC7F41F93C8D400608F26 /* RxDataFlowTests.swift in Sources */,
 				6E11D4D31E9033E10032ACB9 /* SupportTests.swift in Sources */,
-				6EB05CC91E7C1A3000705C9A /* QueueTests.swift in Sources */,
+				6E7DC7F21F93C83B00608F26 /* ConcurrentActionTests.swift in Sources */,
+				6E7DC7F31F93C8AE00608F26 /* ConcurrentCompositeActionTests.swift in Sources */,
 				6E4D970E1F0D71E200B1CC49 /* CompositeActionsTests.swift in Sources */,
-				6E4D97101F0D75B100B1CC49 /* ConcurrentCompositeActionTests.swift in Sources */,
-				6E4D970F1F0D726200B1CC49 /* ConcurrentActionTests.swift in Sources */,
-				6EB46E6E1F0D6FB000166EE0 /* RxDataFlowTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -295,7 +282,9 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
@@ -303,7 +292,11 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
@@ -334,6 +327,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -349,7 +343,9 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
@@ -357,7 +353,11 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
@@ -380,6 +380,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -408,7 +409,8 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
 		};
@@ -432,7 +434,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.AntonEfimenko.RxState;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
 		};
@@ -449,7 +452,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.AntonEfimenko.RxStateTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
 		};
@@ -466,7 +470,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.AntonEfimenko.RxStateTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
 		};

@@ -1,29 +1,27 @@
 language: objective-c
-osx_image: xcode8.3
+osx_image: xcode9
 
 env:
   global:
-  #- WORKSPACE=
   - PROJECT=RxDataFlow.xcodeproj
   - FRAMEWORK_SCHEME=RxDataFlow-iOS
   - SDK=iphonesimulator
-  - DESTINATION_PLATFORM='platform=iOS Simulator,name=iPhone 6s,OS=10.3.1'
+  - DESTINATION_PLATFORM='platform=iOS Simulator,name=iPhone 6s,OS=latest'
 
 before_install:
-  - SIMULATOR_ID=$(xcrun instruments -s | grep -o "iPhone 6s (10.3.1) \[.*\]" | grep -o "\[.*\]" | sed "s/^\[\(.*\)\]$/\1/")
+  # - SIMULATOR_ID=$(xcrun instruments -s | grep -o "iPhone 6s (11.0) \[.*\]" | grep -o "\[.*\]" | sed "s/^\[\(.*\)\]$/\1/")
 
 before_script:
 - carthage version
-- carthage update
-#- mkdir -p ./Carthage/Build/iOS
+- carthage checkout --no-use-binaries
+- mkdir -p ./Carthage/Build/iOS
 #build RxSwift
-#- (cd ./Carthage/Checkouts/RxSwift && set -o pipefail && xcodebuild -scheme "RxSwift-iOS" -workspace "Rx.xcworkspace" -sdk "$SDK" -configuration Release SYMROOT=../../../Build  | xcpretty -c)
-
+- (cd ./Carthage/Checkouts/RxSwift && set -o pipefail && xcodebuild -scheme "RxSwift-iOS" -workspace "Rx.xcworkspace" -sdk "$SDK" -configuration Release SYMROOT=../../../Build  | xcpretty -c)
 #copy RxSwift frameworks to Carthage/Build folder
-#- cp -R -f ./Build/Release-iphonesimulator/ ./Carthage/Build/iOS
+- cp -R -f ./Build/Release-iphonesimulator/ ./Carthage/Build/iOS
 
 script:
-- open -a "simulator" --args -CurrentDeviceUDID $SIMULATOR_ID
+# - open -a "simulator" --args -CurrentDeviceUDID $SIMULATOR_ID
 - set -o pipefail && xcodebuild -scheme "$FRAMEWORK_SCHEME" -project "$PROJECT" -sdk "$SDK" -configuration Debug ONLY_ACTIVE_ARCH=YES -destination "$DESTINATION_PLATFORM" -enableCodeCoverage YES GCC_INSTRUMENT_PROGRAM_FLOW_ARCS=YES GCC_GENERATE_TEST_COVERAGE_FILES=YES clean test  | xcpretty -c
 
 after_success:
