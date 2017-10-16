@@ -19,7 +19,7 @@ More information will be added soon:)
 ## Table of Contents
 
 ## Dependencies
-- [RxSwift](https://github.com/ReactiveX/RxSwift) >= 3.4.0
+- [RxSwift](https://github.com/ReactiveX/RxSwift) >= 4.0.0
 
 ## Requirements
 - Xcode 9.0
