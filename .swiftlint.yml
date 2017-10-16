@@ -1,0 +1,10 @@
+disabled_rules:
+  - trailing_whitespace
+
+excluded:
+  - Carthage
+  - Pods
+  - RxDataFlowTests
+
+large_tuple:
+  - 3

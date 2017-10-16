@@ -32,7 +32,8 @@ public protocol RxActionType {
 	var scheduler: ImmediateSchedulerType? { get }
 	/**
 	Specifies is this action serial or not. Flow controller executes serial actions one after another. 
-	If action takes a long time to complete you may set this property to false and flow controller will not wait this action to complete,
+	If action takes a long time to complete you may set this property to false and flow controller
+	will not wait this action to complete,
 	but execute next action immediately.
 	*/
 	var isSerial: Bool { get }
@@ -42,24 +43,28 @@ public protocol RxActionType {
 Special action that useful for grouping actions.
 Actions will be executed one after another, execution will be stoped on error.
 */
-public struct RxCompositeAction : RxActionType {
+public struct RxCompositeAction: RxActionType {
 	public let scheduler: ImmediateSchedulerType?
 	public let isSerial: Bool
-	
+
 	/// Actions to dispatch
 	public let actions: [RxActionType]
-	
+
 	/// Special action that will be dispatched in case of error
 	public let fallbackAction: RxActionType?
-	
-	public init(actions: [RxActionType], fallbackAction: RxActionType? = nil, isSerial: Bool = true, scheduler: ImmediateSchedulerType? = nil) {
+
+	public init(actions: [RxActionType],
+	            fallbackAction: RxActionType? = nil,
+	            isSerial: Bool = true,
+	            scheduler: ImmediateSchedulerType? = nil) {
 		self.actions = actions
 		self.fallbackAction = fallbackAction
 		self.isSerial = isSerial
 		self.scheduler = scheduler
 	}
-	
-	public init(_ actions: RxActionType..., fallbackAction: RxActionType? = nil, isSerial: Bool = true, scheduler: ImmediateSchedulerType? = nil) {
+
+	public init(_ actions: RxActionType..., fallbackAction: RxActionType? = nil,
+	            isSerial: Bool = true, scheduler: ImmediateSchedulerType? = nil) {
 		self.actions = actions
 		self.fallbackAction = fallbackAction
 		self.isSerial = isSerial
@@ -68,16 +73,14 @@ public struct RxCompositeAction : RxActionType {
 }
 
 /// Initial action that used for placeholder to set initial state
-public struct RxInitializationAction : RxActionType {
+public struct RxInitializationAction: RxActionType {
 	public let isSerial = true
 	public var scheduler: ImmediateSchedulerType?
 }
 
-fileprivate enum FlowControllerError: Error {
+enum FlowControllerError: Error {
 	case compositeActionError(erroredAction: RxActionType, error: Error)
 }
-
-
 
 /**
 This class is responsible for storing state and dispatching new actions.
@@ -87,30 +90,36 @@ public class RxDataFlowController<State: RxStateType> {
 	/**
 	Observable sequence that emits new state changes
 	*/
-	public var state: Observable<(setBy: RxActionType, state: State)> { return currentStateSubject.asObservable().observeOn(scheduler) }
+	public var state: Observable<(setBy: RxActionType, state: State)> {
+		return currentStateSubject.asObservable().observeOn(scheduler)
+	}
 	/**
 	Returns current state
 	*/
-	public var currentState: (setBy: RxActionType, state: State) { return try! currentStateSubject.value() }
+	public var currentState: (setBy: RxActionType, state: State) {
+		// swiftlint:disable:next force_try
+		return try! currentStateSubject.value()
+	}
 	/**
 	Observable sequence that emits errors
 	*/
 	public var errors: Observable<(state: State, action: RxActionType, error: Error)> { return errorsSubject }
-	
+
 	let bag = DisposeBag()
 	let reducer: RxReducer<State>
 	let scheduler: ImmediateSchedulerType
-	
+
 	let actionsSubject: PublishSubject<RxActionType> = PublishSubject()
-	
+
 	let currentStateSubject: BehaviorSubject<(setBy: RxActionType, state: State)>
 	let errorsSubject = PublishSubject<(state: State, action: RxActionType, error: Error)>()
-	
+
 	/**
 	Initialized new instance of RxDataFlowController
 	- parameter reducer: Reducer-function that will be executed for produce a new state
 	- parameter initialState: Initial state instance
-	- maxHistoryItems: Max state instances that will hold flow controller internally (default value is 1 and now changing will cause no effect)
+	- maxHistoryItems: Max state instances that will hold flow controller internally (default value is 1 and 
+	now changing will cause no effect)
 	- dispatchAction: Action that will be dispatched immediately after initialization
 	*/
 	public convenience init(reducer: @escaping RxReducer<State>,
@@ -118,17 +127,18 @@ public class RxDataFlowController<State: RxStateType> {
 	                        dispatchAction: RxActionType? = nil) {
 		self.init(reducer: reducer,
 		          initialState: initialState,
-		          scheduler: SerialDispatchQueueScheduler(qos: .utility, internalSerialQueueName: "com.RxDataFlowController.Scheduler"),
+		          scheduler: SerialDispatchQueueScheduler(qos: .utility,
+		                                                  internalSerialQueueName: "com.RxDataFlowController.Scheduler"),
 		          dispatchAction: dispatchAction)
 	}
-	
+
 	init(reducer: @escaping RxReducer<State>,
 	     initialState: State,
 	     scheduler: ImmediateSchedulerType,
 	     dispatchAction: RxActionType? = nil) {
 		self.scheduler = scheduler
 		self.reducer = reducer
-		
+
 		currentStateSubject = BehaviorSubject(value: (setBy: RxInitializationAction(), state: initialState))
 
 		actionsSubject
@@ -136,12 +146,12 @@ public class RxDataFlowController<State: RxStateType> {
 			.merge(maxConcurrent: 1)
 			.subscribe()
 			.disposed(by: bag)
-		
+
 		if let dispatchAction = dispatchAction {
 			dispatch(dispatchAction)
 		}
 	}
-	
+
 	private func propagate(error: Error, from action: RxActionType) {
 		if case FlowControllerError.compositeActionError(let data) = error {
 			errorsSubject.onNext((state: currentState.state, action: data.erroredAction, error: data.error))
@@ -149,28 +159,34 @@ public class RxDataFlowController<State: RxStateType> {
 			errorsSubject.onNext((state: currentState.state, action: action, error: error))
 		}
 	}
-	
+
 	private func scheduler(for action: RxActionType, owner: RxCompositeAction? = nil) -> ImmediateSchedulerType {
 		let actionScheduler =  action.scheduler ?? owner?.scheduler
 		return actionScheduler ?? scheduler
 	}
-	
-	private func descriptor(for action: RxActionType, owner: RxCompositeAction? = nil) -> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> {
+
+	private func descriptor(for action: RxActionType, owner: RxCompositeAction? = nil)
+		-> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> {
 		let schedulerForAction = scheduler(for: action, owner: owner)
 		return Observable<RxActionType>.from([action], scheduler: schedulerForAction)
-			.flatMap { [weak self] act in return self == nil ? .empty() : self!.reducer(act, self!.currentState.state).subscribeOn(schedulerForAction) }
+			.flatMap { [weak self] act in
+				return self == nil ? .empty() : self!.reducer(act, self!.currentState.state).subscribeOn(schedulerForAction)
+			}
 			.observeOn(schedulerForAction)
-			.flatMap { result -> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> in return .just((setBy: action, mutator: result)) }
+			.flatMap { result -> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> in
+				return .just((setBy: action, mutator: result))
+			}
 	}
-	
+
 	private func mutateState(with mutator: RxStateMutator<State>) -> State {
 		return mutator(currentState.state)
 	}
-	
-	private func schedule(actionDescriptor: Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)>, for action: RxActionType)
+
+	private func schedule(actionDescriptor: Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)>,
+	                      for action: RxActionType)
 		-> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> {
 			guard !action.isSerial else { return actionDescriptor.observeOn(scheduler) }
-			
+
 			return Observable.create { [weak self] observer in
 				guard let object = self else { return Disposables.create() }
 				actionDescriptor
@@ -189,7 +205,7 @@ public class RxDataFlowController<State: RxStateType> {
 				return Disposables.create()
 			}
 	}
-	
+
 	private func observe(action: RxActionType) -> Observable<Void> {
 		let descriptor: Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> = { [weak self] in
 			guard let object = self else { return .empty() }
@@ -217,7 +233,8 @@ public class RxDataFlowController<State: RxStateType> {
 			.catchError { _ in .just(()) }
 	}
 	
-	private func observe(compositeAction: RxCompositeAction) -> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> {
+	private func observe(compositeAction: RxCompositeAction)
+		-> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> {
 		return Observable.create { [weak self] observer in
 			guard let object = self else { return Disposables.create() }
 

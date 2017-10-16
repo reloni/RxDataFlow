@@ -52,13 +52,13 @@ extension ChangeTextValueAction {
 	}
 }
 
-struct CustomDescriptorAction : RxActionType {
+struct CustomDescriptorAction: RxActionType {
 	var scheduler: ImmediateSchedulerType?
 	let descriptor: Observable<RxStateMutator<TestState>>
 	let isSerial: Bool
 }
 
-enum EnumAction : RxActionType {
+enum EnumAction: RxActionType {
 	case inMainScheduler(Observable<RxStateMutator<TestState>>)
 	case inCustomScheduler(ImmediateSchedulerType, Observable<RxStateMutator<TestState>>)
 	
@@ -72,22 +72,22 @@ enum EnumAction : RxActionType {
 	}
 }
 
-struct CompletionAction : RxActionType {
+struct CompletionAction: RxActionType {
 	var scheduler: ImmediateSchedulerType?
 	let isSerial: Bool = true
 }
 
-enum TestError : Error {
+enum TestError: Error {
 	case someError
 	case otherError
 }
 
-struct ErrorAction : RxActionType {
+struct ErrorAction: RxActionType {
 	let isSerial = true
 	var scheduler: ImmediateSchedulerType?
 }
 
-struct ConcurrentErrorAction : RxActionType {
+struct ConcurrentErrorAction: RxActionType {
 	let isSerial = false
 	var scheduler: ImmediateSchedulerType?
 }
