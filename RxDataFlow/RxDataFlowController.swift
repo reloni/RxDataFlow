@@ -118,8 +118,6 @@ public class RxDataFlowController<State: RxStateType> {
 	Initialized new instance of RxDataFlowController
 	- parameter reducer: Reducer-function that will be executed for produce a new state
 	- parameter initialState: Initial state instance
-	- maxHistoryItems: Max state instances that will hold flow controller internally (default value is 1 and 
-	now changing will cause no effect)
 	- dispatchAction: Action that will be dispatched immediately after initialization
 	*/
 	public convenience init(reducer: @escaping RxReducer<State>,
