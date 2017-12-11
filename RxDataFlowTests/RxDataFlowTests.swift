@@ -603,9 +603,14 @@ class RxDataFlowTests: XCTestCase {
                                     CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 3", stateText: "Value 2"),
                                     CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 4", stateText: "Value 3"),
                                     CompletionAction()],
-                          isSerial: false)
+                          isSerial: true)
 
         store.dispatch(action)
+        
+//        FLATMAP
+//        state: Initial value
+//        FLATMAP 2
+//        MUTATE
         
 //        store.dispatch(CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 1", stateText: "Initial value"))
 //        store.dispatch(CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 2", stateText: "Value 1"))

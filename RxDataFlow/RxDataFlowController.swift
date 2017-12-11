@@ -179,12 +179,13 @@ public class RxDataFlowController<State: RxStateType> {
 			}
 			.observeOn(schedulerForAction)
 			.flatMap { result -> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> in
+                print("FLATMAP 2")
 				return .just((setBy: action, mutator: result))
 			}
 	}
 
 	private func mutateState(with mutator: RxStateMutator<State>) -> State {
-        print("MUTATE")
+        print("MUTATE current: \(currentState.state)")
 		return mutator(currentState.state)
 	}
 
@@ -245,6 +246,20 @@ public class RxDataFlowController<State: RxStateType> {
 		-> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> {
 		return Observable.create { [weak self] observer in
 			guard let object = self else { return Disposables.create() }
+            
+            /*
+             let schedulerForAction = scheduler(for: action, owner: owner)
+             return Observable<RxActionType>.from([action], scheduler: schedulerForAction)
+             .flatMap { [weak self] act -> Observable<RxStateMutator<State>> in
+             print("FLATMAP")
+             return self == nil ? .empty() : self!.reducer(act, self!.currentState.state).subscribeOn(schedulerForAction)
+             }
+             .observeOn(schedulerForAction)
+             .flatMap { result -> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> in
+             print("FLATMAP 2")
+             return .just((setBy: action, mutator: result))
+             }
+ */
 
 			let scheduledActions = compositeAction.actions.map { action in
 				object
@@ -257,7 +272,10 @@ public class RxDataFlowController<State: RxStateType> {
 				.observeOn(object.scheduler)
 				.merge(maxConcurrent: 1)
 				.observeOn(object.scheduler)
-				.do(onNext: { observer.onNext((setBy: $0.setBy, mutator: $0.mutator)) },
+				.do(onNext: { [weak self] next in
+                    guard let newState = self?.mutateState(with: next.mutator) else { return }
+                    self?.currentState = (setBy: next.setBy, state: newState)
+                },
 				    onError: { observer.onError($0) },
 				    onDispose: { observer.onCompleted() })
 				.subscribe()
