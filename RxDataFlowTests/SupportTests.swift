@@ -92,7 +92,15 @@ struct ConcurrentErrorAction: RxActionType {
 	var scheduler: ImmediateSchedulerType?
 }
 
+struct CompareStateAction: RxActionType {
+    let isSerial: Bool
+    let scheduler: ImmediateSchedulerType?
+    let newText: String
+    let stateText: String
+}
+
 func testStoreReducer(_ action: RxActionType, currentState: TestState) -> Observable<RxStateMutator<TestState>> {
+    print("state: \(currentState.text)")
 	switch action {
 	case let a as ChangeTextValueAction: return .just({ _ in return TestState(text: a.newText) }) //return changeTextValue(newText: a.newText)
 	case _ as CompletionAction: return .just({ _ in return TestState(text: "Completed") }) //return completion()
@@ -108,6 +116,9 @@ func testStoreReducer(_ action: RxActionType, currentState: TestState) -> Observ
 			XCTAssertFalse(Thread.isMainThread)
 			return descriptor
 		}
+    case let action as CompareStateAction:
+        XCTAssertEqual(action.stateText, currentState.text)
+        return .just({ _ in return TestState(text: action.newText) }) //return changeTextValue(newText: a.newText)
 	default: return Observable.empty()
 	}
 }

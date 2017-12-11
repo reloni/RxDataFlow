@@ -587,4 +587,48 @@ class RxDataFlowTests: XCTestCase {
 		XCTAssertEqual(1, action2Scheduler.scheduleCounter)
 		XCTAssertEqual(expectedStateHistoryTextValues, stateHistory)
 	}
+    
+    func testStoreAndPassCorrectState() {
+        let store = RxDataFlowController(reducer: testStoreReducer,
+                                         initialState: TestState(text: "Initial value"))
+        let completeExpectation = expectation(description: "Should perform all non-error actions")
+        
+        _ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
+            completeExpectation.fulfill()
+        })
+        
+        
+        let action = RxCompositeAction(actions: [CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 1", stateText: "Initial value"),
+                                    CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 2", stateText: "Value 1"),
+                                    CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 3", stateText: "Value 2"),
+                                    CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 4", stateText: "Value 3"),
+                                    CompletionAction()],
+                          isSerial: false)
+
+        store.dispatch(action)
+        
+//        store.dispatch(CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 1", stateText: "Initial value"))
+//        store.dispatch(CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 2", stateText: "Value 1"))
+//        store.dispatch(CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 3", stateText: "Value 2"))
+//        store.dispatch(CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 4", stateText: "Value 3"))
+//        store.dispatch(CompletionAction())
+//        _ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
+        
+//        store.dispatch(ChangeTextValueAction(newText: "New text 1"))
+//        DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.01) { store.dispatch(ChangeTextValueAction(newText: "New text 2")) }
+//        DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.1) { store.dispatch(ChangeTextValueAction(newText: "New text 3")) }
+//        DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.30) { store.dispatch(CompletionAction()) }
+        
+        let result = XCTWaiter().wait(for: [completeExpectation], timeout: 100)
+        XCTAssertEqual(result, .completed)
+        
+        XCTAssertEqual("Completed", store.currentState.state.text)
+//        let expectedStateHistoryTextValues = ["Initial value",
+//                                              "New text 1",
+//                                              "New text 2",
+//                                              "New text 3",
+//                                              "Completed"]
+        
+//        XCTAssertEqual(expectedStateHistoryTextValues, stateHistory)
+    }
 }
