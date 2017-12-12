@@ -93,18 +93,14 @@ public class RxDataFlowController<State: RxStateType> {
 	public var state: Observable<(setBy: RxActionType, state: State)> {
 		return currentStateSubject.asObservable().startWith(currentState).observeOn(scheduler)
 	}
+	
 	/**
 	Returns current state
 	*/
-//    public var currentState: (setBy: RxActionType, state: State) {
-
-//        return try! currentStateSubject.value()
-//    }
     public private(set) var currentState: (setBy: RxActionType, state: State) {
-        didSet {
-            currentStateSubject.onNext(currentState)
-        }
+        didSet { currentStateSubject.onNext(currentState) }
     }
+	
 	/**
 	Observable sequence that emits errors
 	*/
@@ -143,7 +139,6 @@ public class RxDataFlowController<State: RxStateType> {
 		self.reducer = reducer
 
         currentState = (setBy: RxInitializationAction(), state: initialState)
-//        currentStateSubject = BehaviorSubject(value: (setBy: RxInitializationAction(), state: initialState))
 
 		actionsSubject
 			.map { [weak self] action -> Observable<Void> in return self?.observe(action: action) ?? .empty() }
@@ -174,19 +169,21 @@ public class RxDataFlowController<State: RxStateType> {
 		let schedulerForAction = scheduler(for: action, owner: owner)
 		return Observable<RxActionType>.from([action], scheduler: schedulerForAction)
 			.flatMap { [weak self] act -> Observable<RxStateMutator<State>> in
-                print("FLATMAP")
 				return self == nil ? .empty() : self!.reducer(act, self!.currentState.state).subscribeOn(schedulerForAction)
 			}
 			.observeOn(schedulerForAction)
 			.flatMap { result -> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> in
-                print("FLATMAP 2")
 				return .just((setBy: action, mutator: result))
 			}
 	}
-
-	private func mutateState(with mutator: RxStateMutator<State>) -> State {
-        print("MUTATE current: \(currentState.state)")
-		return mutator(currentState.state)
+	
+	private func setNewState(mutator: RxStateMutator<State>, action: RxActionType) {
+		currentState = (setBy: action, mutator(currentState.state))
+	}
+	
+	private func dispatchFallbackAction(for action: RxActionType) {
+		guard let action = (action as? RxCompositeAction)?.fallbackAction else { return }
+		dispatch(action)
 	}
 
 	private func schedule(actionDescriptor: Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)>,
@@ -198,11 +195,7 @@ public class RxDataFlowController<State: RxStateType> {
 				guard let object = self else { return Disposables.create() }
 				actionDescriptor
 					.observeOn(object.scheduler)
-					.do(onNext: { [weak self] next in
-                        guard let newState = self?.mutateState(with: next.mutator) else { return }
-                        self?.currentState = (setBy: next.setBy, state: newState)
-//                        self?.currentStateSubject.onNext((setBy: next.setBy, state: newState))
-						},
+					.do(onNext: { [weak self] next in self?.setNewState(mutator: next.mutator, action: next.setBy) },
 					    onError: { [weak self] in self?.propagate(error: $0, from: action) })
 					.subscribeOn(action.scheduler ?? object.scheduler)
 					.subscribe()
@@ -227,17 +220,8 @@ public class RxDataFlowController<State: RxStateType> {
 		
 		return schedule(actionDescriptor: descriptor, for: action)
 			.observeOn(scheduler)
-			.do(onNext: { [weak self] next in
-				guard let newState = self?.mutateState(with: next.mutator) else { return }
-                self?.currentState = (setBy: next.setBy, state: newState)
-//                self?.currentStateSubject.onNext((setBy: next.setBy, state: newState))
-				},
-			    onError: { [weak self] in
-						self?.propagate(error: $0, from: action)
-						if let fallback = (action as? RxCompositeAction)?.fallbackAction {
-							self?.dispatch(fallback)
-						}
-					})
+			.do(onNext: { [weak self] next in self?.setNewState(mutator: next.mutator, action: next.setBy) },
+				onError: { [weak self] in self?.propagate(error: $0, from: action); self?.dispatchFallbackAction(for: action)})
 			.flatMap { _ in return Observable<Void>.just(()) }
 			.catchError { _ in .just(()) }
 	}
@@ -246,20 +230,6 @@ public class RxDataFlowController<State: RxStateType> {
 		-> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> {
 		return Observable.create { [weak self] observer in
 			guard let object = self else { return Disposables.create() }
-            
-            /*
-             let schedulerForAction = scheduler(for: action, owner: owner)
-             return Observable<RxActionType>.from([action], scheduler: schedulerForAction)
-             .flatMap { [weak self] act -> Observable<RxStateMutator<State>> in
-             print("FLATMAP")
-             return self == nil ? .empty() : self!.reducer(act, self!.currentState.state).subscribeOn(schedulerForAction)
-             }
-             .observeOn(schedulerForAction)
-             .flatMap { result -> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> in
-             print("FLATMAP 2")
-             return .just((setBy: action, mutator: result))
-             }
- */
 
 			let scheduledActions = compositeAction.actions.map { action in
 				object
@@ -272,10 +242,7 @@ public class RxDataFlowController<State: RxStateType> {
 				.observeOn(object.scheduler)
 				.merge(maxConcurrent: 1)
 				.observeOn(object.scheduler)
-				.do(onNext: { [weak self] next in
-                    guard let newState = self?.mutateState(with: next.mutator) else { return }
-                    self?.currentState = (setBy: next.setBy, state: newState)
-                },
+				.do(onNext: { [weak self] next in self?.setNewState(mutator: next.mutator, action: next.setBy) },
 				    onError: { observer.onError($0) },
 				    onDispose: { observer.onCompleted() })
 				.subscribe()

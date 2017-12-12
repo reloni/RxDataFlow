@@ -100,12 +100,11 @@ struct CompareStateAction: RxActionType {
 }
 
 func testStoreReducer(_ action: RxActionType, currentState: TestState) -> Observable<RxStateMutator<TestState>> {
-    print("state: \(currentState.text)")
 	switch action {
-	case let a as ChangeTextValueAction: return .just({ _ in return TestState(text: a.newText) }) //return changeTextValue(newText: a.newText)
-	case _ as CompletionAction: return .just({ _ in return TestState(text: "Completed") }) //return completion()
+	case let a as ChangeTextValueAction: return .just({ _ in return TestState(text: a.newText) })
+	case _ as CompletionAction: return .just({ _ in return TestState(text: "Completed") })
 	case let a as CustomDescriptorAction: return a.descriptor
-	case _ as ErrorAction: return .error(TestError.someError) //return error()
+	case _ as ErrorAction: return .error(TestError.someError)
 	case _ as ConcurrentErrorAction: return .error(TestError.someError)
 	case let enumAction as EnumAction:
 		switch enumAction {
@@ -118,7 +117,7 @@ func testStoreReducer(_ action: RxActionType, currentState: TestState) -> Observ
 		}
     case let action as CompareStateAction:
         XCTAssertEqual(action.stateText, currentState.text)
-        return .just({ _ in return TestState(text: action.newText) }) //return changeTextValue(newText: a.newText)
+        return .just({ _ in return TestState(text: action.newText) })
 	default: return Observable.empty()
 	}
 }
