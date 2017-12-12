@@ -587,4 +587,25 @@ class RxDataFlowTests: XCTestCase {
 		XCTAssertEqual(1, action2Scheduler.scheduleCounter)
 		XCTAssertEqual(expectedStateHistoryTextValues, stateHistory)
 	}
+    
+    func testStoreAndPassCorrectState() {
+        let store = RxDataFlowController(reducer: testStoreReducer,
+                                         initialState: TestState(text: "Initial value"))
+        let completeExpectation = expectation(description: "Should perform all non-error actions")
+        
+        _ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
+            completeExpectation.fulfill()
+        })
+
+        store.dispatch(CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 1", stateText: "Initial value"))
+        store.dispatch(CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 2", stateText: "Value 1"))
+        store.dispatch(CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 3", stateText: "Value 2"))
+        store.dispatch(CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 4", stateText: "Value 3"))
+        store.dispatch(CompletionAction())
+        
+        let result = XCTWaiter().wait(for: [completeExpectation], timeout: 100)
+        XCTAssertEqual(result, .completed)
+        
+        XCTAssertEqual("Completed", store.currentState.state.text)
+    }
 }

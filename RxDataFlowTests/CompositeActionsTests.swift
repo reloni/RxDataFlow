@@ -354,4 +354,52 @@ class CompositeActions: XCTestCase {
 		XCTAssertEqual(2, errorCounter)
 		XCTAssertEqual(expectedStateHistoryTextValues, stateHistory)
 	}
+	
+	func testStoreAndPassCorrectState_serial() {
+		let store = RxDataFlowController(reducer: testStoreReducer,
+										 initialState: TestState(text: "Initial value"))
+		let completeExpectation = expectation(description: "Should perform all non-error actions")
+		
+		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
+			completeExpectation.fulfill()
+		})
+		
+		let action = RxCompositeAction(actions: [CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 1", stateText: "Initial value"),
+												 CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 2", stateText: "Value 1"),
+												 CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 3", stateText: "Value 2"),
+												 CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 4", stateText: "Value 3"),
+												 CompletionAction()],
+									   isSerial: true)
+		
+		store.dispatch(action)
+		
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 100)
+		XCTAssertEqual(result, .completed)
+		
+		XCTAssertEqual("Completed", store.currentState.state.text)
+	}
+	
+	func testStoreAndPassCorrectState_notSerial() {
+		let store = RxDataFlowController(reducer: testStoreReducer,
+										 initialState: TestState(text: "Initial value"))
+		let completeExpectation = expectation(description: "Should perform all non-error actions")
+		
+		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
+			completeExpectation.fulfill()
+		})
+		
+		let action = RxCompositeAction(actions: [CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 1", stateText: "Initial value"),
+												 CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 2", stateText: "Value 1"),
+												 CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 3", stateText: "Value 2"),
+												 CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 4", stateText: "Value 3"),
+												 CompletionAction()],
+									   isSerial: false)
+		
+		store.dispatch(action)
+		
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 100)
+		XCTAssertEqual(result, .completed)
+		
+		XCTAssertEqual("Completed", store.currentState.state.text)
+	}
 }
