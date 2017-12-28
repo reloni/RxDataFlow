@@ -97,9 +97,11 @@ public class RxDataFlowController<State: RxStateType> {
 	/**
 	Returns current state
 	*/
-    public private(set) var currentState: (setBy: RxActionType, state: State) {
-        didSet { currentStateSubject.onNext(currentState) }
-    }
+//    public private(set) var currentState: (setBy: RxActionType, state: State) {
+//        didSet { currentStateSubject.onNext(currentState) }
+//    }
+    // swiftlint:disable force_try
+    public var currentState: (setBy: RxActionType, state: State) { return try! currentStateSubject.value() }
 	
 	/**
 	Observable sequence that emits errors
@@ -112,7 +114,7 @@ public class RxDataFlowController<State: RxStateType> {
 
 	let actionsSubject: PublishSubject<RxActionType> = PublishSubject()
 
-	let currentStateSubject = PublishSubject<(setBy: RxActionType, state: State)>()
+	let currentStateSubject: BehaviorSubject<(setBy: RxActionType, state: State)>
 	let errorsSubject = PublishSubject<(state: State, action: RxActionType, error: Error)>()
 
 	/**
@@ -138,7 +140,7 @@ public class RxDataFlowController<State: RxStateType> {
 		self.scheduler = scheduler
 		self.reducer = reducer
 
-        currentState = (setBy: RxInitializationAction(), state: initialState)
+        currentStateSubject = BehaviorSubject(value: (setBy: RxInitializationAction(), state: initialState))
 
 		actionsSubject
 			.map { [weak self] action -> Observable<Void> in return self?.observe(action: action) ?? .empty() }
@@ -178,7 +180,8 @@ public class RxDataFlowController<State: RxStateType> {
 	}
 	
 	private func setNewState(mutator: RxStateMutator<State>, action: RxActionType) {
-		currentState = (setBy: action, mutator(currentState.state))
+//        currentState = (setBy: action, mutator(currentState.state))
+        currentStateSubject.onNext((setBy: action, mutator(currentState.state)))
 	}
 	
 	private func dispatchFallbackAction(for action: RxActionType) {
