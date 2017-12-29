@@ -11,6 +11,17 @@ import Foundation
 import RxSwift
 import XCTest
 
+final class DeinitObject {
+	let onDeinit: () -> ()
+	init(_ value: @escaping () -> Void) {
+		onDeinit = value
+	}
+	deinit {
+		onDeinit()
+	}
+}
+
+
 final class TestFlowController<State: RxStateType> : RxDataFlowController<State> {
 	var onDeinit: ((TestFlowController) -> ())?
 	deinit {
@@ -61,6 +72,7 @@ struct CustomDescriptorAction: RxActionType {
 enum EnumAction: RxActionType {
 	case inMainScheduler(Observable<RxStateMutator<TestState>>)
 	case inCustomScheduler(ImmediateSchedulerType, Observable<RxStateMutator<TestState>>)
+	case deinitObject(DeinitObject)
 	
 	var isSerial: Bool { return true }
 	
@@ -68,6 +80,7 @@ enum EnumAction: RxActionType {
 		switch self {
 		case .inMainScheduler: return MainScheduler.instance
 		case .inCustomScheduler(let scheduler, _): return scheduler
+		default: return nil
 		}
 	}
 }
@@ -114,6 +127,8 @@ func testStoreReducer(_ action: RxActionType, currentState: TestState) -> Observ
 		case .inCustomScheduler(_, let descriptor):
 			XCTAssertFalse(Thread.isMainThread)
 			return descriptor
+		case .deinitObject:
+			return .just({ _ in return TestState(text: "Deinit object") })
 		}
     case let action as CompareStateAction:
         XCTAssertEqual(action.stateText, currentState.text)

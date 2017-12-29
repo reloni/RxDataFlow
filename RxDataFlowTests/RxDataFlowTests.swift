@@ -11,6 +11,32 @@ import RxSwift
 @testable import RxDataFlow
 
 class RxDataFlowTests: XCTestCase {
+	func testObjectPassedToControllerDeinited() {
+		let store: TestFlowController! = TestFlowController(reducer: testStoreReducer,
+															initialState: TestState(text: "Initial value"))
+		
+		let deinitExpectation = expectation(description: "Object should be deinited")
+		store.dispatch(ChangeTextValueAction(newText: "New text 1"))
+		store.dispatch(EnumAction.deinitObject(DeinitObject({ deinitExpectation.fulfill() })))
+		store.dispatch(ChangeTextValueAction(newText: "New text 2"))
+		
+		let deinitResult = XCTWaiter().wait(for: [deinitExpectation], timeout: 3)
+		XCTAssertEqual(deinitResult, .completed)
+	}
+	
+	func testObjectPassedToControllerStoredAndNotDeinited() {
+		let store: TestFlowController! = TestFlowController(reducer: testStoreReducer,
+															initialState: TestState(text: "Initial value"))
+		
+		let deinitExpectation = expectation(description: "Object should be deinited")
+		store.dispatch(ChangeTextValueAction(newText: "New text 1"))
+		store.dispatch(EnumAction.deinitObject(DeinitObject({ deinitExpectation.fulfill() })))
+		
+		let deinitResult = XCTWaiter().wait(for: [deinitExpectation], timeout: 1)
+		XCTAssertEqual(deinitResult, .timedOut)
+		XCTAssertEqual(store.currentState.state.text, "Deinit object")
+	}
+	
 	/// Test FlowController deinit if there is no actions to dispatch
 	func testDeinit() {
 		var store: TestFlowController! = TestFlowController(reducer: testStoreReducer,

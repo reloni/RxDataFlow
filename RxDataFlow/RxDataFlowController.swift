@@ -97,12 +97,10 @@ public class RxDataFlowController<State: RxStateType> {
 	/**
 	Returns current state
 	*/
-//    public private(set) var currentState: (setBy: RxActionType, state: State) {
-//        didSet { currentStateSubject.onNext(currentState) }
-//    }
-    // swiftlint:disable force_try
-    public var currentState: (setBy: RxActionType, state: State) { return try! currentStateSubject.value() }
-	
+    public private(set) var currentState: (setBy: RxActionType, state: State) {
+        didSet { currentStateSubject.onNext(currentState) }
+    }
+
 	/**
 	Observable sequence that emits errors
 	*/
@@ -114,7 +112,7 @@ public class RxDataFlowController<State: RxStateType> {
 
 	let actionsSubject: PublishSubject<RxActionType> = PublishSubject()
 
-	let currentStateSubject: BehaviorSubject<(setBy: RxActionType, state: State)>
+	let currentStateSubject = PublishSubject<(setBy: RxActionType, state: State)>()
 	let errorsSubject = PublishSubject<(state: State, action: RxActionType, error: Error)>()
 
 	/**
@@ -140,7 +138,7 @@ public class RxDataFlowController<State: RxStateType> {
 		self.scheduler = scheduler
 		self.reducer = reducer
 
-        currentStateSubject = BehaviorSubject(value: (setBy: RxInitializationAction(), state: initialState))
+		currentState = (setBy: RxInitializationAction(), state: initialState)
 
 		actionsSubject
 			.map { [weak self] action -> Observable<Void> in return self?.observe(action: action) ?? .empty() }
@@ -180,8 +178,7 @@ public class RxDataFlowController<State: RxStateType> {
 	}
 	
 	private func setNewState(mutator: RxStateMutator<State>, action: RxActionType) {
-//        currentState = (setBy: action, mutator(currentState.state))
-        currentStateSubject.onNext((setBy: action, mutator(currentState.state)))
+        currentState = (setBy: action, mutator(currentState.state))
 	}
 	
 	private func dispatchFallbackAction(for action: RxActionType) {
@@ -224,7 +221,7 @@ public class RxDataFlowController<State: RxStateType> {
 		return schedule(actionDescriptor: descriptor, for: action)
 			.observeOn(scheduler)
 			.do(onNext: { [weak self] next in self?.setNewState(mutator: next.mutator, action: next.setBy) },
-				onError: { [weak self] in self?.propagate(error: $0, from: action); self?.dispatchFallbackAction(for: action)})
+				onError: { [weak self] in self?.propagate(error: $0, from: action); self?.dispatchFallbackAction(for: action) })
 			.flatMap { _ in return Observable<Void>.just(()) }
 			.catchError { _ in .just(()) }
 	}
