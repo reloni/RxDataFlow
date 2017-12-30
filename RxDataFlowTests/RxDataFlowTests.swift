@@ -15,6 +15,7 @@ class RxDataFlowTests: XCTestCase {
 		let store: TestFlowController! = TestFlowController(reducer: testStoreReducer,
 															initialState: TestState(text: "Initial value"))
 		
+//		_ = store.state.subscribe(onNext: { print($0) })
 		let deinitExpectation = expectation(description: "Object should be deinited")
 		store.dispatch(ChangeTextValueAction(newText: "New text 1"))
 		store.dispatch(EnumAction.deinitObject(DeinitObject({ deinitExpectation.fulfill() })))
