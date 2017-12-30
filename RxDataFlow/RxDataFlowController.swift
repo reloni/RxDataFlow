@@ -141,15 +141,7 @@ public class RxDataFlowController<State: RxStateType> {
 		currentState = (setBy: RxInitializationAction(), state: initialState)
 
 		actionsSubject
-			.map { [weak self] action -> Observable<Void> in
-				return Observable.create { [weak self] observer in
-					let subscription = self?
-						.observe(action: action)
-						.do(onDispose: { observer.onCompleted() })
-						.subscribe()
-					return subscription != nil ? Disposables.create([subscription!]) : Disposables.create()
-				}
-			}
+			.map { [weak self] action -> Observable<Void> in return self?.observe(action: action) ?? .empty() }
 			.merge(maxConcurrent: 1)
 			.subscribe()
 			.disposed(by: bag)
@@ -174,19 +166,14 @@ public class RxDataFlowController<State: RxStateType> {
 
 	private func descriptor(for action: RxActionType, owner: RxCompositeAction? = nil)
 		-> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> {
-			let schedulerForAction = scheduler(for: action, owner: owner)
-			
-			return Observable.create { [weak self] observer in
-				let subscription = Observable<RxActionType>.from([action], scheduler: schedulerForAction)
-					.flatMap { [weak self] act -> Observable<RxStateMutator<State>> in
-						return self == nil ? .empty() : self!.reducer(act, self!.currentState.state).subscribeOn(schedulerForAction)
-					}
-					.observeOn(schedulerForAction)
-					.do(onNext: { observer.onNext((setBy: action, mutator: $0)) })
-					.do(onError: { observer.onError($0) })
-					.do(onDispose: { observer.onCompleted() })
-					.subscribe()
-				return Disposables.create([subscription])
+		let schedulerForAction = scheduler(for: action, owner: owner)
+		return Observable<RxActionType>.from([action], scheduler: schedulerForAction)
+			.flatMap { [weak self] act -> Observable<RxStateMutator<State>> in
+				return self == nil ? .empty() : self!.reducer(act, self!.currentState.state).subscribeOn(schedulerForAction)
+			}
+			.observeOn(schedulerForAction)
+			.flatMap { result -> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> in
+				return .just((setBy: action, mutator: result))
 			}
 	}
 	
@@ -231,23 +218,12 @@ public class RxDataFlowController<State: RxStateType> {
 			return object.observe(compositeAction: compositeAction)
 		}()
 		
-		return Observable.create { [weak self] observer in
-			guard let object = self else { observer.onCompleted(); return Disposables.create() }
-			let subscription = object.schedule(actionDescriptor: descriptor, for: action)
-				.observeOn(object.scheduler)
-				.do(onNext: { [weak self] next in self?.setNewState(mutator: next.mutator, action: next.setBy) },
-					onError: { [weak self] in self?.propagate(error: $0, from: action); self?.dispatchFallbackAction(for: action) })
-				.do(onDispose: { observer.onCompleted() })
-				.subscribe()
-			return Disposables.create([subscription])
-		}
-		
-//		return schedule(actionDescriptor: descriptor, for: action)
-//			.observeOn(scheduler)
-//			.do(onNext: { [weak self] next in self?.setNewState(mutator: next.mutator, action: next.setBy) },
-//				onError: { [weak self] in self?.propagate(error: $0, from: action); self?.dispatchFallbackAction(for: action) })
-//			.flatMap { _ in return Observable<Void>.just(()) }
-//			.catchError { _ in .just(()) }
+		return schedule(actionDescriptor: descriptor, for: action)
+			.observeOn(scheduler)
+			.do(onNext: { [weak self] next in self?.setNewState(mutator: next.mutator, action: next.setBy) },
+				onError: { [weak self] in self?.propagate(error: $0, from: action); self?.dispatchFallbackAction(for: action) })
+			.flatMap { _ in return Observable<Void>.just(()) }
+			.catchError { _ in .just(()) }
 	}
 	
 	private func observe(compositeAction: RxCompositeAction)
