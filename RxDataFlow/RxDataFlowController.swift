@@ -141,7 +141,15 @@ public class RxDataFlowController<State: RxStateType> {
 		currentState = (setBy: RxInitializationAction(), state: initialState)
 
 		actionsSubject
-			.map { [weak self] action -> Observable<Void> in return self?.observe(action: action) ?? .empty() }
+			.map { [weak self] action -> Observable<Void> in
+				return Observable.create { [weak self] observer in
+					let subscription = self?
+						.observe(action: action)
+						.do(onDispose: { observer.onCompleted() })
+						.subscribe()
+					return subscription != nil ? Disposables.create([subscription!]) : Disposables.create()
+				}
+			}
 			.merge(maxConcurrent: 1)
 			.subscribe()
 			.disposed(by: bag)
