@@ -9,30 +9,30 @@
 import XCTest
 import RxSwift
 @testable import RxDataFlow
-
-enum TestEnum {
-	case some(DeinitObject)
-}
-
-class DeinitTests: XCTestCase {
-	func testDeinit() {
-		let input = PublishSubject<TestEnum>()
-		let output = PublishSubject<TestEnum>()
-		
-		_ = input.asObservable()
-			.map { Observable.just($0) }
-			.merge(maxConcurrent: 1)
-			.observeOn(SerialDispatchQueueScheduler(qos: .utility))
-			.do(onNext: { v in print(v) })
-			.subscribe(onNext: { obj in print(obj) })
-		
-		_ = output.observeOn(SerialDispatchQueueScheduler(qos: .utility)).do(onNext: { print("output: \($0)") }).subscribe()
-		
-		(0...10).forEach { value in input.onNext(TestEnum.some(DeinitObject({ print("Object \(value) deinited") }))) }
-		
-		sleep(3)
-	}
-}
+//
+//enum TestEnum {
+//	case some(DeinitObject)
+//}
+//
+//class DeinitTests: XCTestCase {
+//	func testDeinit() {
+//		let input = PublishSubject<TestEnum>()
+//		let output = PublishSubject<TestEnum>()
+//
+//		_ = input.asObservable()
+//			.map { Observable.just($0) }
+//			.merge(maxConcurrent: 1)
+//			.observeOn(SerialDispatchQueueScheduler(qos: .utility))
+//			.do(onNext: { v in print(v) })
+//			.subscribe(onNext: { obj in print(obj) })
+//
+//		_ = output.observeOn(SerialDispatchQueueScheduler(qos: .utility)).do(onNext: { print("output: \($0)") }).subscribe()
+//
+//		(0...10).forEach { value in input.onNext(TestEnum.some(DeinitObject({ print("Object \(value) deinited") }))) }
+//
+//		sleep(3)
+//	}
+//}
 
 class RxDataFlowTests: XCTestCase {
 	func testObjectPassedToControllerDeinited() {
@@ -41,7 +41,7 @@ class RxDataFlowTests: XCTestCase {
 		
 		let deinitExpectation = expectation(description: "Object should be deinited")
 		
-		_ = store.state.subscribe(onNext: { print($0.setBy) })
+//		_ = store.state.subscribe(onNext: { print($0.setBy) })
 		store.dispatch(ChangeTextValueAction(newText: "New text 1"))
 		store.dispatch(EnumAction.deinitObject(DeinitObject({ deinitExpectation.fulfill() })))
 		store.dispatch(ChangeTextValueAction(newText: "New text 2"))
@@ -49,7 +49,6 @@ class RxDataFlowTests: XCTestCase {
 		store.dispatch(ChangeTextValueAction(newText: "New text 2"))
 		store.dispatch(ChangeTextValueAction(newText: "New text 2"))
 		store.dispatch(ChangeTextValueAction(newText: "New text 2"))
-//		d.dispose()
 		
 		let deinitResult = XCTWaiter().wait(for: [deinitExpectation], timeout: 3)
 		XCTAssertEqual(deinitResult, .completed)
