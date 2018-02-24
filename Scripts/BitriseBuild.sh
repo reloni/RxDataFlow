@@ -1,8 +1,9 @@
 #!/bin/bash
 set -e
 
-curl -O https://bootstrap.pypa.io/get-pip.py
-python3 get-pip.py --user
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+brew install python3
+
 pip3 install awscli --upgrade --user
 aws --version
 
