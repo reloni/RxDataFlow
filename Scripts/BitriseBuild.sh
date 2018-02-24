@@ -5,6 +5,7 @@ set -e
 brew install python3
 
 pip3 install awscli --upgrade --user
+export PATH=$PATH:$HOME/.local/bin
 aws --version
 
 sh Scripts/DownloadCacheFromS3.sh
