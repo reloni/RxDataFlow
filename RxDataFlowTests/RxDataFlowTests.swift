@@ -666,4 +666,24 @@ class RxDataFlowTests: XCTestCase {
         
         XCTAssertEqual("Completed", store.currentState.state.text)
     }
+    
+    func testDispatchAfter() {
+        let store = RxDataFlowController(reducer: testStoreReducer,
+                                         initialState: TestState(text: "Initial value"))
+        let completeExpectation = expectation(description: "Should complete")
+        
+        _ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
+            completeExpectation.fulfill()
+        })
+        
+        let start = Date()
+        store.dispatchAfter(.seconds(1), action: CompletionAction())
+        
+        let result = XCTWaiter().wait(for: [completeExpectation], timeout: timeout)
+        XCTAssertEqual(result, .completed)
+        
+        let finish = Date()
+        
+        XCTAssertGreaterThan(finish.timeIntervalSince(start), 1)
+    }
 }
