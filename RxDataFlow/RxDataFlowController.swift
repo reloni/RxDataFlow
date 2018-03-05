@@ -82,6 +82,11 @@ enum FlowControllerError: Error {
 	case compositeActionError(erroredAction: RxActionType, error: Error)
 }
 
+extension SerialDispatchQueueScheduler {
+    static var defaultControllerScheduler =
+        SerialDispatchQueueScheduler(qos: .userInitiated, internalSerialQueueName: "com.RxDataFlowController.Scheduler")
+}
+
 public class RxDataFlowController<State: RxStateType> {
 	/**
 	Observable sequence that emits new state changes
@@ -115,18 +120,20 @@ public class RxDataFlowController<State: RxStateType> {
 	Initialized new instance of RxDataFlowController
 	- parameter reducer: Reducer-function that will be executed for produce a new state
 	- parameter initialState: Initial state instance
-	- dispatchAction: Action that will be dispatched immediately after initialization
+	- parameter dispatchAction: Action that will be dispatched immediately after initialization
+    - parameter defaultScheduler: Default scheduler that will be used for dispatching actions.
+     If not specified, will be used scheduler with userInitiated quality of service.
 	*/
-	public convenience init(
-		reducer: @escaping RxReducer<State>,
-		initialState: State,
-		dispatchAction: RxActionType? = nil) {
-		self.init(reducer: reducer,
-				  initialState: initialState,
-				  scheduler: SerialDispatchQueueScheduler(qos: .userInitiated,
-														  internalSerialQueueName: "com.RxDataFlowController.Scheduler"),
-				  dispatchAction: dispatchAction)
-	}
+    public convenience init(
+        reducer: @escaping RxReducer<State>,
+        initialState: State,
+        dispatchAction: RxActionType? = nil,
+        defaultScheduler: SerialDispatchQueueScheduler? = nil) {
+        self.init(reducer: reducer,
+                  initialState: initialState,
+                  scheduler: defaultScheduler ?? SerialDispatchQueueScheduler.defaultControllerScheduler,
+                  dispatchAction: dispatchAction)
+    }
 	
 	init(
 		reducer: @escaping RxReducer<State>,
