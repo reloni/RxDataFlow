@@ -11,7 +11,7 @@ import XCTest
 import RxSwift
 
 class ConcurrentActionTests: XCTestCase {
-    let timeout: TimeInterval = 3
+    let timeout: TimeInterval = 5
     
 	func testScheduleConcurrentActions() {
 		let serialScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
