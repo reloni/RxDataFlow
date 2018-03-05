@@ -285,21 +285,4 @@ public class RxDataFlowController<State: RxStateType> {
 				}.subscribe()
 			}.disposed(by: bag)
 	}
-    
-    /**
-     Dispatches an action after specified DispatchTimeInterval.
-     This is a simple wrapper over DispatchQueue.asyncAfter(deadline: execute:) function
-     Example of dispatching an action:
-     ```
-     let data = ...
-     controller.dispatchAfter(.seconds(1), action: DataAction.updateData(data))
-     // action will be dispatched after 1 second
-     ```
-     - parameter action: The action that is being dispatched by controller
-     */
-    public func dispatchAfter(_ interval: DispatchTimeInterval, action: RxActionType) {
-        DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + interval) {
-            self.dispatch(action)
-        }
-    }
 }
