@@ -123,7 +123,7 @@ public class RxDataFlowController<State: RxStateType> {
 		dispatchAction: RxActionType? = nil) {
 		self.init(reducer: reducer,
 				  initialState: initialState,
-				  scheduler: SerialDispatchQueueScheduler(qos: .utility,
+				  scheduler: SerialDispatchQueueScheduler(qos: .userInitiated,
 														  internalSerialQueueName: "com.RxDataFlowController.Scheduler"),
 				  dispatchAction: dispatchAction)
 	}
@@ -291,7 +291,7 @@ public class RxDataFlowController<State: RxStateType> {
      - parameter action: The action that is being dispatched by controller
      */
     public func dispatchAfter(_ interval: DispatchTimeInterval, action: RxActionType) {
-        DispatchQueue.global(qos: .default).asyncAfter(deadline: .now() + interval) {
+        DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + interval) {
             self.dispatch(action)
         }
     }
