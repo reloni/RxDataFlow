@@ -11,6 +11,8 @@ import XCTest
 import RxSwift
 
 class ConcurrentActionTests: XCTestCase {
+    let timeout: TimeInterval = 3
+    
 	func testScheduleConcurrentActions() {
 		let serialScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let store = RxDataFlowController(reducer: testStoreReducer,
@@ -45,7 +47,7 @@ class ConcurrentActionTests: XCTestCase {
 			store.dispatch(CompletionAction())
 		}
 		
-		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1.5)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: timeout)
 		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
@@ -99,7 +101,7 @@ class ConcurrentActionTests: XCTestCase {
 			store.dispatch(CompletionAction())
 		}
 		
-		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1.5)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: timeout)
 		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
@@ -145,7 +147,7 @@ class ConcurrentActionTests: XCTestCase {
 			store.dispatch(CompletionAction())
 		}
 		
-		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1.5)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: timeout)
 		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
@@ -192,7 +194,7 @@ class ConcurrentActionTests: XCTestCase {
 			store.dispatch(CompletionAction())
 		}
 		
-		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1.5)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: timeout)
 		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
@@ -242,7 +244,7 @@ class ConcurrentActionTests: XCTestCase {
 			store.dispatch(CompletionAction())
 		}
 		
-		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1.5)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: timeout)
 		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
@@ -290,7 +292,7 @@ class ConcurrentActionTests: XCTestCase {
 			store.dispatch(CompletionAction())
 		}
 		
-		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1.5)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: timeout)
 		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",
@@ -344,8 +346,8 @@ class ConcurrentActionTests: XCTestCase {
 			store.dispatch(CompletionAction())
 		}
 		
-		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 1.5)
-		let errorResult = XCTWaiter.wait(for: [errorExpectation], timeout: 1.5)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: timeout)
+		let errorResult = XCTWaiter.wait(for: [errorExpectation], timeout: timeout)
 		
 		XCTAssertEqual(result, .completed)
 		XCTAssertEqual(errorResult, .completed)
