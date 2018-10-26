@@ -35,7 +35,7 @@ import RxSwift
 //}
 
 class RxDataFlowTests: XCTestCase {
-    let timeout: TimeInterval = 3
+    let timeout: TimeInterval = 10
     
 	func testObjectPassedToControllerDeinited() {
 		let store: TestFlowController! = TestFlowController(reducer: testStoreReducer,
@@ -490,7 +490,7 @@ class RxDataFlowTests: XCTestCase {
 		                                 scheduler: storeScheduler)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
-		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
+		_ = store.state.observeOn(SerialDispatchQueueScheduler(qos: .background)).filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
 			completeExpectation.fulfill()
 		})
 		
@@ -591,7 +591,7 @@ class RxDataFlowTests: XCTestCase {
 		store.dispatch(action1)
 		store.dispatch(CompletionAction())
 		
-		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 4)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: timeout)
 		XCTAssertEqual(result, .completed)
 		
 		let expectedStateHistoryTextValues = ["Initial value",

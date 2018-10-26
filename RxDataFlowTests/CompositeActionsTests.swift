@@ -11,7 +11,7 @@ import RxSwift
 @testable import RxDataFlow
 
 class CompositeActions: XCTestCase {
-    let timeout: TimeInterval = 3
+    let timeout: TimeInterval = 10
     
 	func testCompositeAction() {
 		let store = RxDataFlowController(reducer: testStoreReducer,
