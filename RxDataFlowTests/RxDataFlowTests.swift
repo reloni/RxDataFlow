@@ -490,7 +490,7 @@ class RxDataFlowTests: XCTestCase {
 		                                 scheduler: storeScheduler)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
-		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
+		_ = store.state.observeOn(SerialDispatchQueueScheduler(qos: .background)).filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
 			completeExpectation.fulfill()
 		})
 		
