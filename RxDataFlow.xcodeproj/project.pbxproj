@@ -18,7 +18,6 @@
 		6E7DC7F21F93C83B00608F26 /* ConcurrentActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E4364871EC05A7D00D126B2 /* ConcurrentActionTests.swift */; };
 		6E7DC7F31F93C8AE00608F26 /* ConcurrentCompositeActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E75DF391ECAAFBD00C911B4 /* ConcurrentCompositeActionTests.swift */; };
 		6E7DC7F41F93C8D400608F26 /* RxDataFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E130F301DCA66A2006DC5ED /* RxDataFlowTests.swift */; };
-		6EB27AC821C3C3740013479C /* Carthage.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 6EB27AC721C3C3740013479C /* Carthage.xcconfig */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -181,7 +180,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0810;
-				LastUpgradeCheck = 1000;
+				LastUpgradeCheck = 1010;
 				ORGANIZATIONNAME = "Anton Efimenko";
 				TargetAttributes = {
 					6E130F211DCA66A1006DC5ED = {
@@ -221,7 +220,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6EB27AC821C3C3740013479C /* Carthage.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
