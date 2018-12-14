@@ -12,6 +12,7 @@ import RxSwift
 
 class ConcurrentActionTests: XCTestCase {
     let timeout: TimeInterval = 10
+    let completionTimeout: TimeInterval = 1
     
 	func testScheduleConcurrentActions() {
 		let serialScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
@@ -43,7 +44,7 @@ class ConcurrentActionTests: XCTestCase {
 		store.dispatch(action4)
 		store.dispatch(action5)
 		store.dispatch(action6)
-		DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+		DispatchQueue.main.asyncAfter(deadline: .now() + completionTimeout) {
 			store.dispatch(CompletionAction())
 		}
 		
@@ -97,7 +98,7 @@ class ConcurrentActionTests: XCTestCase {
 		store.dispatch(action4)
 		store.dispatch(action5)
 		store.dispatch(action6)
-		DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+		DispatchQueue.main.asyncAfter(deadline: .now() + completionTimeout) {
 			store.dispatch(CompletionAction())
 		}
 		
@@ -143,7 +144,7 @@ class ConcurrentActionTests: XCTestCase {
 		let action6 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (6)")), isSerial: true)
 		
 		store.dispatch(RxCompositeAction(action1, action2, action3, action4, action5, action6))
-		DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+		DispatchQueue.main.asyncAfter(deadline: .now() + completionTimeout) {
 			store.dispatch(CompletionAction())
 		}
 		
@@ -190,7 +191,7 @@ class ConcurrentActionTests: XCTestCase {
 		store.dispatch(action1)
 		store.dispatch(RxCompositeAction(action2, action3, action4, action5))
 		store.dispatch(action6)
-		DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+		DispatchQueue.main.asyncAfter(deadline: .now() + completionTimeout) {
 			store.dispatch(CompletionAction())
 		}
 		
@@ -240,7 +241,7 @@ class ConcurrentActionTests: XCTestCase {
 		store.dispatch(action1)
 		store.dispatch(RxCompositeAction(action2, action3, action4, action5))
 		store.dispatch(action6)
-		DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+		DispatchQueue.main.asyncAfter(deadline: .now() + completionTimeout) {
 			store.dispatch(CompletionAction())
 		}
 		
@@ -288,7 +289,7 @@ class ConcurrentActionTests: XCTestCase {
 		store.dispatch(action1)
 		store.dispatch(RxCompositeAction(action2, action3, action4, action5))
 		store.dispatch(action6)
-		DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+		DispatchQueue.main.asyncAfter(deadline: .now() + completionTimeout) {
 			store.dispatch(CompletionAction())
 		}
 		
@@ -342,7 +343,7 @@ class ConcurrentActionTests: XCTestCase {
 		store.dispatch(action1)
 		store.dispatch(RxCompositeAction(action2, action3, ConcurrentErrorAction(), action4, action5))
 		store.dispatch(action6)
-		DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+		DispatchQueue.main.asyncAfter(deadline: .now() + completionTimeout) {
 			store.dispatch(CompletionAction())
 		}
 		
