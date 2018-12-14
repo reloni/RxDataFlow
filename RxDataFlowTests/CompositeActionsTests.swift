@@ -18,12 +18,13 @@ class CompositeActions: XCTestCase {
 		                                 initialState: TestState(text: "Initial value"))
 		
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
-		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
-			completeExpectation.fulfill()
-		})
 		
 		var stateHistory = [String]()
-		_ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
+		_ = store.state
+            .do(onNext: { stateHistory.append($0.state.text) })
+            .filter { $0.setBy is CompletionAction }
+            .do(onNext: { _ in completeExpectation.fulfill() })
+            .subscribe()
 		
 		let action = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed"),
 		                                         ChangeTextValueAction(newText: "Action 2 executed"),
@@ -50,9 +51,6 @@ class CompositeActions: XCTestCase {
 		                                 initialState: TestState(text: "Initial value"))
 
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
-		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
-			completeExpectation.fulfill()
-		})
 
 		let changeTextValueActionExpectation = expectation(description: "Should perform ChangeTextValueAction with correct setBy")
 		let customDescriptorActionExpectation = expectation(description: "Should perform CustomDescriptorAction with correct setBy")
@@ -65,7 +63,11 @@ class CompositeActions: XCTestCase {
 		})
 		
 		var stateHistory = [String]()
-		_ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
+		_ = store.state
+            .do(onNext: { stateHistory.append($0.state.text) })
+            .filter { $0.setBy is CompletionAction }
+            .do(onNext: { _ in completeExpectation.fulfill() })
+            .subscribe()
 
 		let descriptor = testStateDescriptor(text: "Action 2 executed")
 		let action = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed"),
@@ -94,10 +96,6 @@ class CompositeActions: XCTestCase {
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		let errorExpectation = expectation(description: "Should throw error")
 
-		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
-			completeExpectation.fulfill()
-		})
-
 		_ = store.errors.subscribe(onNext: { error in
 			XCTAssertTrue(error.action is ErrorAction)
 			XCTAssertTrue((error.error as? TestError) == TestError.someError)
@@ -105,7 +103,11 @@ class CompositeActions: XCTestCase {
 		})
 		
 		var stateHistory = [String]()
-		_ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
+		_ = store.state
+            .do(onNext: { stateHistory.append($0.state.text) })
+            .filter { $0.setBy is CompletionAction }
+            .do(onNext: { _ in completeExpectation.fulfill() })
+            .subscribe()
 
 		let action = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed"),
 		                                         ChangeTextValueAction(newText: "Action 2 executed"),
@@ -134,12 +136,13 @@ class CompositeActions: XCTestCase {
 		                                 initialState: TestState(text: "Initial value"))
 
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
-		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
-			completeExpectation.fulfill()
-		})
 		
 		var stateHistory = [String]()
-		_ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
+		_ = store.state
+            .do(onNext: { stateHistory.append($0.state.text) })
+            .filter { $0.setBy is CompletionAction }
+            .do(onNext: { _ in completeExpectation.fulfill() })
+            .subscribe()
 
 		let action1 = RxCompositeAction(actions: [ChangeTextValueAction(newText: "Action 1 executed"),
 		                                          ChangeTextValueAction(newText: "Action 2 executed"),
@@ -184,12 +187,13 @@ class CompositeActions: XCTestCase {
 		                                 scheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)))
 
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
-		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
-			completeExpectation.fulfill()
-		})
 		
 		var stateHistory = [String]()
-		_ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
+		_ = store.state
+            .do(onNext: { stateHistory.append($0.state.text) })
+            .filter { $0.setBy is CompletionAction }
+            .do(onNext: { _ in completeExpectation.fulfill() })
+            .subscribe()
 
 		let topScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		let scheduler1 = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
@@ -244,12 +248,13 @@ class CompositeActions: XCTestCase {
 		                                 scheduler: TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility)))
 
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
-		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
-			completeExpectation.fulfill()
-		})
 
 		var stateHistory = [String]()
-		_ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
+		_ = store.state
+            .do(onNext: { stateHistory.append($0.state.text) })
+            .filter { $0.setBy is CompletionAction }
+            .do(onNext: { _ in completeExpectation.fulfill() })
+            .subscribe()
 
 		let descriptor1: Observable<RxStateMutator<TestState>> = {
 			return Observable.create { observer in
@@ -307,17 +312,17 @@ class CompositeActions: XCTestCase {
 
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 
-		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
-			completeExpectation.fulfill()
-		})
-
 		var errorCounter = 0
 		_ = store.errors.subscribe(onNext: {
 			if case TestError.someError = $0.error { errorCounter += 1 }
 		})
 		
 		var stateHistory = [String]()
-		_ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
+		_ = store.state
+            .do(onNext: { stateHistory.append($0.state.text) })
+            .filter { $0.setBy is CompletionAction }
+            .do(onNext: { _ in completeExpectation.fulfill() })
+            .subscribe()
 
 		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
 

@@ -39,6 +39,11 @@ public protocol RxActionType {
 	var isSerial: Bool { get }
 }
 
+extension RxActionType {
+    var scheduler: ImmediateSchedulerType? { return nil }
+    var isSerial: Bool { return true }
+}
+
 /**
 Special action that useful for grouping actions.
 Actions will be executed one after another, execution will be stoped on error.

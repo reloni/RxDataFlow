@@ -1,7 +1,8 @@
 # RxDataFlow
 
 [![Build Status](https://app.bitrise.io/app/adcbf5bae5c5640f/status.svg?token=7CreHFiOHin1x_2ftrxRYA)](https://app.bitrise.io/app/adcbf5bae5c5640f)
-[![codecov](https://codecov.io/gh/reloni/RxDataFlow/branch/master/graph/badge.svg)](https://codecov.io/gh/reloni/RxDataFlow)![Platform iOS](https://img.shields.io/badge/platform-iOS-lightgray.svg)
+[![codecov](https://codecov.io/gh/reloni/RxDataFlow/branch/master/graph/badge.svg)](https://codecov.io/gh/reloni/RxDataFlow)
+![Platform iOS](https://img.shields.io/badge/platform-iOS%20%7C%20macOS-lightgray.svg)
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
 [![codebeat badge](https://codebeat.co/badges/7cf46f0c-96ad-4f11-b547-cfd021868765)](https://codebeat.co/projects/github-com-reloni-rxdataflow-master)
 

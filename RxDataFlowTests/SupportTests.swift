@@ -86,8 +86,7 @@ enum EnumAction: RxActionType {
 }
 
 struct CompletionAction: RxActionType {
-	var scheduler: ImmediateSchedulerType?
-	let isSerial: Bool = true
+
 }
 
 enum TestError: Error {
