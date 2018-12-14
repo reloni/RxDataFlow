@@ -39,7 +39,7 @@ public protocol RxActionType {
 	var isSerial: Bool { get }
 }
 
-extension RxActionType {
+public extension RxActionType {
     var scheduler: ImmediateSchedulerType? { return nil }
     var isSerial: Bool { return true }
 }
