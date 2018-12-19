@@ -40,7 +40,7 @@ public enum RxReduceResult<State: RxStateType> {
     }
 }
 
-extension RxReduceResult {
+public extension RxReduceResult {
     static func create<Result>(from observable: Observable<Result>,
                                with transform: @escaping (State, Result) -> State) -> RxReduceResult<State> {
         let map = observable.map { result in
