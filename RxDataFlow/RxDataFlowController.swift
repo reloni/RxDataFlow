@@ -20,10 +20,17 @@ Flow controller passes current state to function and uses returned instance as n
 */
 public typealias RxStateMutator<State: RxStateType> = (State) -> (State)
 
+/**
+ Type returned by reducer function.
+*/
 public enum RxReduceResult<State: RxStateType> {
+    /// Represents error that will be passed to errors Observable
     case error(Error)
+    /// Single state mutation
     case single(RxStateMutator<State>)
+    /// Represents Observable that may mutate state multiple times
     case observable(Observable<RxStateMutator<State>>)
+    /// Empty result, no state changes will occur
     case empty
     
     internal func asObservable() -> Observable<RxStateMutator<State>> {
@@ -37,6 +44,12 @@ public enum RxReduceResult<State: RxStateType> {
 }
 
 public extension RxReduceResult {
+    /**
+     Create new RxReduceResult.observable case from Observable.
+     - parameter from: Observable that emits elements
+     - parameter transform: Function that transforms current state value and emited element into new state value
+     - returns: New RxReduceResult.observable case
+    */
     static func create<Result>(from observable: Observable<Result>,
                                transform: @escaping (State, Result) -> State) -> RxReduceResult<State> {
         let map = observable.map { result in
@@ -50,6 +63,7 @@ public extension RxReduceResult {
 }
 
 /**
+ Function used by RxDataFlowController in order to change state
 */
 public typealias RxReducer<State: RxStateType> = (RxActionType, State) -> RxReduceResult<State>
 
