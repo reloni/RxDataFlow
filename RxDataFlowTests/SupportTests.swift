@@ -47,10 +47,6 @@ struct TestState : RxStateType {
 	let text: String
 }
 
-func testStateDescriptor(text: String) -> (TestState) -> (TestState) {
-	return { _ in return TestState(text: text) }
-}
-
 struct ChangeTextValueAction : RxActionType {
 	let isSerial = true
 	let newText: String
@@ -63,18 +59,18 @@ extension ChangeTextValueAction {
 	}
 }
 
-struct CustomDescriptorAction: RxActionType {
+struct CustomObservableAction: RxActionType {
 	var scheduler: ImmediateSchedulerType?
-	let descriptor: Observable<RxStateMutator<TestState>>
+	let observable: Observable<TestState>
 	let isSerial: Bool
     var reduceResult: RxReduceResult<TestState> {
-        return RxReduceResult.observable(descriptor)
+        return RxReduceResult.create(from: observable, with: { a, b in return b })
     }
 }
 
 enum EnumAction: RxActionType {
-	case inMainScheduler(Observable<RxStateMutator<TestState>>)
-	case inCustomScheduler(ImmediateSchedulerType, Observable<RxStateMutator<TestState>>)
+	case inMainScheduler(Observable<TestState>)
+	case inCustomScheduler(ImmediateSchedulerType, Observable<TestState>)
 	case deinitObject(DeinitObject)
 	
 	var isSerial: Bool { return true }
@@ -120,7 +116,7 @@ func testStoreReducer(_ action: RxActionType, currentState: TestState) -> RxRedu
         return RxReduceResult.single({ _ in return TestState(text: a.newText) })
 	case _ as CompletionAction:
         return RxReduceResult.single({ _ in return TestState(text: "Completed") })
-	case let a as CustomDescriptorAction:
+	case let a as CustomObservableAction:
         return a.reduceResult
 	case _ as ErrorAction:
         return RxReduceResult.error(TestError.someError)
@@ -130,10 +126,10 @@ func testStoreReducer(_ action: RxActionType, currentState: TestState) -> RxRedu
 		switch enumAction {
 		case .inMainScheduler(let descriptor):
 			XCTAssertTrue(Thread.isMainThread)
-            return RxReduceResult.observable(descriptor)
+            return RxReduceResult.create(from: descriptor, with: { $1 })
 		case .inCustomScheduler(_, let descriptor):
 			XCTAssertFalse(Thread.isMainThread)
-            return RxReduceResult.observable(descriptor)
+            return RxReduceResult.create(from: descriptor, with: { $1 })
 		case .deinitObject:
             return RxReduceResult.single({ _ in return TestState(text: "Deinit object") })
 		}

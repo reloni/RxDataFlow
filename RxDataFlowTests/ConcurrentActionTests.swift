@@ -31,12 +31,12 @@ class ConcurrentActionTests: XCTestCase {
 		
 		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
 		
-		let action1 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (1)")), isSerial: true)
-		let action2 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (2)")), isSerial: true)
-		let action3 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (3)")).delay(0.2, scheduler: delayScheduler), isSerial: false)
-		let action4 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (4)")).delay(0.1, scheduler: delayScheduler), isSerial: false)
-		let action5 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (5)")), isSerial: true)
-		let action6 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (6)")), isSerial: true)
+		let action1 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (1)")), isSerial: true)
+		let action2 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (2)")), isSerial: true)
+		let action3 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (3)")).delay(0.2, scheduler: delayScheduler), isSerial: false)
+		let action4 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (4)")).delay(0.1, scheduler: delayScheduler), isSerial: false)
+		let action5 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (5)")), isSerial: true)
+		let action6 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (6)")), isSerial: true)
 		
 		store.dispatch(action1)
 		store.dispatch(action2)
@@ -83,14 +83,14 @@ class ConcurrentActionTests: XCTestCase {
 		
 		let actionConcurrentScheduler = TestScheduler(internalScheduler:  ConcurrentDispatchQueueScheduler(qos: .utility))
 		
-		let action1 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (1)")), isSerial: true)
-		let action2 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (2)")), isSerial: true)
-		let action3 = CustomDescriptorAction(scheduler: actionConcurrentScheduler,
-		                                     descriptor: Observable.just(testStateDescriptor(text: "Action executed (3)")).delay(0.2, scheduler: delayScheduler), isSerial: false)
-		let action4 = CustomDescriptorAction(scheduler: actionConcurrentScheduler,
-		                                     descriptor: Observable.just(testStateDescriptor(text: "Action executed (4)")).delay(0.1, scheduler: delayScheduler), isSerial: false)
-		let action5 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (5)")), isSerial: true)
-		let action6 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (6)")), isSerial: true)
+		let action1 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (1)")), isSerial: true)
+		let action2 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (2)")), isSerial: true)
+		let action3 = CustomObservableAction(scheduler: actionConcurrentScheduler,
+		                                     observable: Observable.just(TestState(text: "Action executed (3)")).delay(0.2, scheduler: delayScheduler), isSerial: false)
+		let action4 = CustomObservableAction(scheduler: actionConcurrentScheduler,
+		                                     observable: Observable.just(TestState(text: "Action executed (4)")).delay(0.1, scheduler: delayScheduler), isSerial: false)
+		let action5 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (5)")), isSerial: true)
+		let action6 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (6)")), isSerial: true)
 		
 		store.dispatch(action1)
 		store.dispatch(action2)
@@ -136,12 +136,12 @@ class ConcurrentActionTests: XCTestCase {
 		
 		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
 		
-		let action1 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (1)")), isSerial: true)
-		let action2 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (2)")), isSerial: true)
-		let action3 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (3)")).delay(0.2, scheduler: delayScheduler), isSerial: false)
-		let action4 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (4)")).delay(0.1, scheduler: delayScheduler), isSerial: false)
-		let action5 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (5)")), isSerial: true)
-		let action6 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (6)")), isSerial: true)
+		let action1 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (1)")), isSerial: true)
+		let action2 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (2)")), isSerial: true)
+		let action3 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (3)")).delay(0.2, scheduler: delayScheduler), isSerial: false)
+		let action4 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (4)")).delay(0.1, scheduler: delayScheduler), isSerial: false)
+		let action5 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (5)")), isSerial: true)
+		let action6 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (6)")), isSerial: true)
 		
 		store.dispatch(RxCompositeAction(action1, action2, action3, action4, action5, action6))
         DispatchQueue.main.asyncAfter(deadline: .now() + completionTimeout) {
@@ -181,12 +181,12 @@ class ConcurrentActionTests: XCTestCase {
 		
 		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
 		
-		let action1 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (1)")), isSerial: true)
-		let action2 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (2)")), isSerial: true)
-		let action3 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (3)")).delay(0.2, scheduler: delayScheduler), isSerial: false)
-		let action4 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (4)")).delay(0.1, scheduler: delayScheduler), isSerial: false)
-		let action5 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (5)")), isSerial: true)
-		let action6 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (6)")), isSerial: true)
+		let action1 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (1)")), isSerial: true)
+		let action2 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (2)")), isSerial: true)
+		let action3 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (3)")).delay(0.2, scheduler: delayScheduler), isSerial: false)
+		let action4 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (4)")).delay(0.1, scheduler: delayScheduler), isSerial: false)
+		let action5 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (5)")), isSerial: true)
+		let action6 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (6)")), isSerial: true)
 		
 		store.dispatch(action1)
 		store.dispatch(RxCompositeAction(action2, action3, action4, action5))
@@ -229,14 +229,14 @@ class ConcurrentActionTests: XCTestCase {
 		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
 		let actionConcurrentScheduler = TestScheduler(internalScheduler:  ConcurrentDispatchQueueScheduler(qos: .utility))
 		
-		let action1 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (1)")), isSerial: true)
-		let action2 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (2)")), isSerial: true)
-		let action3 = CustomDescriptorAction(scheduler: actionConcurrentScheduler,
-		                                     descriptor: Observable.just(testStateDescriptor(text: "Action executed (3)")).delay(0.2, scheduler: delayScheduler), isSerial: false)
-		let action4 = CustomDescriptorAction(scheduler: actionConcurrentScheduler,
-		                                     descriptor: Observable.just(testStateDescriptor(text: "Action executed (4)")).delay(0.1, scheduler: delayScheduler), isSerial: false)
-		let action5 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (5)")), isSerial: true)
-		let action6 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (6)")), isSerial: true)
+		let action1 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (1)")), isSerial: true)
+		let action2 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (2)")), isSerial: true)
+		let action3 = CustomObservableAction(scheduler: actionConcurrentScheduler,
+		                                     observable: Observable.just(TestState(text: "Action executed (3)")).delay(0.2, scheduler: delayScheduler), isSerial: false)
+		let action4 = CustomObservableAction(scheduler: actionConcurrentScheduler,
+		                                     observable: Observable.just(TestState(text: "Action executed (4)")).delay(0.1, scheduler: delayScheduler), isSerial: false)
+		let action5 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (5)")), isSerial: true)
+		let action6 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (6)")), isSerial: true)
 		
 		store.dispatch(action1)
 		store.dispatch(RxCompositeAction(action2, action3, action4, action5))
@@ -279,12 +279,12 @@ class ConcurrentActionTests: XCTestCase {
 		
 		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
 		
-		let action1 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (1)")), isSerial: true)
-		let action2 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (2)")).delay(0.1, scheduler: delayScheduler), isSerial: true)
-		let action3 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (3)")).delay(0.002, scheduler: delayScheduler), isSerial: false)
-		let action4 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (4)")).delay(0.001, scheduler: delayScheduler), isSerial: false)
-		let action5 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (5)")).delay(0.2, scheduler: delayScheduler), isSerial: true)
-		let action6 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (6)")), isSerial: true)
+		let action1 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (1)")), isSerial: true)
+		let action2 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (2)")).delay(0.1, scheduler: delayScheduler), isSerial: true)
+		let action3 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (3)")).delay(0.002, scheduler: delayScheduler), isSerial: false)
+		let action4 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (4)")).delay(0.001, scheduler: delayScheduler), isSerial: false)
+		let action5 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (5)")).delay(0.2, scheduler: delayScheduler), isSerial: true)
+		let action6 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (6)")), isSerial: true)
 		
 		store.dispatch(action1)
 		store.dispatch(RxCompositeAction(action2, action3, action4, action5))
@@ -333,12 +333,12 @@ class ConcurrentActionTests: XCTestCase {
 		
 		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
 		
-		let action1 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (1)")), isSerial: true)
-		let action2 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (2)")).delay(0.1, scheduler: delayScheduler), isSerial: true)
-		let action3 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (3)")).delay(0.02, scheduler: delayScheduler), isSerial: false)
-		let action4 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (4)")).delay(0.001, scheduler: delayScheduler), isSerial: false)
-		let action5 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (5)")).delay(0.2, scheduler: delayScheduler), isSerial: true)
-		let action6 = CustomDescriptorAction(scheduler: nil, descriptor: Observable.just(testStateDescriptor(text: "Action executed (6)")), isSerial: true)
+		let action1 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (1)")), isSerial: true)
+		let action2 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (2)")).delay(0.1, scheduler: delayScheduler), isSerial: true)
+		let action3 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (3)")).delay(0.02, scheduler: delayScheduler), isSerial: false)
+		let action4 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (4)")).delay(0.001, scheduler: delayScheduler), isSerial: false)
+		let action5 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (5)")).delay(0.2, scheduler: delayScheduler), isSerial: true)
+		let action6 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (6)")), isSerial: true)
 		
 		store.dispatch(action1)
 		store.dispatch(RxCompositeAction(action2, action3, ConcurrentErrorAction(), action4, action5))
