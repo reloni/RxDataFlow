@@ -67,6 +67,9 @@ struct CustomDescriptorAction: RxActionType {
 	var scheduler: ImmediateSchedulerType?
 	let descriptor: Observable<RxStateMutator<TestState>>
 	let isSerial: Bool
+    var reduceResult: RxReduceResult<TestState> {
+        return RxReduceResult.multiple(descriptor)
+    }
 }
 
 enum EnumAction: RxActionType {
@@ -111,28 +114,34 @@ struct CompareStateAction: RxActionType {
     let stateText: String
 }
 
-func testStoreReducer(_ action: RxActionType, currentState: TestState) -> Observable<RxStateMutator<TestState>> {
+func testStoreReducer(_ action: RxActionType, currentState: TestState) -> RxReduceResult<TestState> {
 	switch action {
-	case let a as ChangeTextValueAction: return .just({ _ in return TestState(text: a.newText) })
-	case _ as CompletionAction: return .just({ _ in return TestState(text: "Completed") })
-	case let a as CustomDescriptorAction: return a.descriptor
-	case _ as ErrorAction: return .error(TestError.someError)
-	case _ as ConcurrentErrorAction: return .error(TestError.someError)
+	case let a as ChangeTextValueAction:
+        return RxReduceResult.single({ _ in return TestState(text: a.newText) })
+	case _ as CompletionAction:
+        return RxReduceResult.single({ _ in return TestState(text: "Completed") })
+	case let a as CustomDescriptorAction:
+        return a.reduceResult
+	case _ as ErrorAction:
+        return RxReduceResult.error(TestError.someError)
+	case _ as ConcurrentErrorAction:
+        return RxReduceResult.error(TestError.someError)
 	case let enumAction as EnumAction:
 		switch enumAction {
 		case .inMainScheduler(let descriptor):
 			XCTAssertTrue(Thread.isMainThread)
-			return descriptor
+            return RxReduceResult.multiple(descriptor)
 		case .inCustomScheduler(_, let descriptor):
 			XCTAssertFalse(Thread.isMainThread)
-			return descriptor
+            return RxReduceResult.multiple(descriptor)
 		case .deinitObject:
-			return .just({ _ in return TestState(text: "Deinit object") })
+            return RxReduceResult.single({ _ in return TestState(text: "Deinit object") })
 		}
     case let action as CompareStateAction:
         XCTAssertEqual(action.stateText, currentState.text)
-        return .just({ _ in return TestState(text: action.newText) })
-	default: return Observable.empty()
+        return RxReduceResult.single({ _ in return TestState(text: action.newText) })
+	default:
+        return RxReduceResult.multiple(.empty())
 	}
 }
 

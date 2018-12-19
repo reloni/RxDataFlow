@@ -372,9 +372,9 @@ class CompositeActions: XCTestCase {
 		})
 		
 		let action = RxCompositeAction(actions: [CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 1", stateText: "Initial value"),
-												 CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 2", stateText: "Value 1"),
-												 CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 3", stateText: "Value 2"),
-												 CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 4", stateText: "Value 3"),
+                                                 CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 2", stateText: "Value 1"),
+                                                 CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 3", stateText: "Value 2"),
+                                                 CompareStateAction(isSerial: true, scheduler: nil, newText: "Value 4", stateText: "Value 3"),
 												 CompletionAction()],
 									   isSerial: true)
 		
