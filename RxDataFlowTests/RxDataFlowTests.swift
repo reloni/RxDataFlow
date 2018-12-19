@@ -9,30 +9,6 @@
 import XCTest
 import RxSwift
 @testable import RxDataFlow
-//
-//enum TestEnum {
-//	case some(DeinitObject)
-//}
-//
-//class DeinitTests: XCTestCase {
-//	func testDeinit() {
-//		let input = PublishSubject<TestEnum>()
-//		let output = PublishSubject<TestEnum>()
-//
-//		_ = input.asObservable()
-//			.map { Observable.just($0) }
-//			.merge(maxConcurrent: 1)
-//			.observeOn(SerialDispatchQueueScheduler(qos: .utility))
-//			.do(onNext: { v in print(v) })
-//			.subscribe(onNext: { obj in print(obj) })
-//
-//		_ = output.observeOn(SerialDispatchQueueScheduler(qos: .utility)).do(onNext: { print("output: \($0)") }).subscribe()
-//
-//		(0...10).forEach { value in input.onNext(TestEnum.some(DeinitObject({ print("Object \(value) deinited") }))) }
-//
-//		sleep(3)
-//	}
-//}
 
 class RxDataFlowTests: XCTestCase {
     let timeout: TimeInterval = 10
@@ -43,7 +19,6 @@ class RxDataFlowTests: XCTestCase {
 		
 		let deinitExpectation = expectation(description: "Object should be deinited")
 		
-//		_ = store.state.subscribe(onNext: { print($0.setBy) })
 		store.dispatch(ChangeTextValueAction(newText: "New text 1"))
 		store.dispatch(EnumAction.deinitObject(DeinitObject({ deinitExpectation.fulfill() })))
 		store.dispatch(ChangeTextValueAction(newText: "New text 2"))
@@ -82,12 +57,12 @@ class RxDataFlowTests: XCTestCase {
 		
 		let completeExpectation = expectation(description: "Should not fulfill this expectation")
 		
-		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { _ in
-			completeExpectation.fulfill()
-		})
-		
 		var stateHistory = [String]()
-		_ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
+		_ = store.state
+            .do(onNext: { stateHistory.append($0.state.text) })
+            .filter { $0.setBy is CompletionAction }
+            .do(onNext: { _ in completeExpectation.fulfill() })
+            .subscribe()
 		
 		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
 		
@@ -128,12 +103,12 @@ class RxDataFlowTests: XCTestCase {
 		
 		let completeExpectation = expectation(description: "Should not fulfill this expectation")
 		
-		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { _ in
-			completeExpectation.fulfill()
-		})
-		
 		var stateHistory = [String]()
-		_ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
+		_ = store.state
+            .do(onNext: { stateHistory.append($0.state.text) })
+            .filter { $0.setBy is CompletionAction }
+            .do(onNext: { _ in completeExpectation.fulfill() })
+            .subscribe()
 		
 		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
 		
@@ -247,12 +222,12 @@ class RxDataFlowTests: XCTestCase {
 			changeTextValueActionCount += 1
 		})
 		
-		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
-			completeExpectation.fulfill()
-		})
-		
 		var stateHistory = [String]()
-		_ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
+		_ = store.state
+            .do(onNext: { stateHistory.append($0.state.text) })
+            .filter { $0.setBy is CompletionAction }
+            .do(onNext: { _ in completeExpectation.fulfill() })
+            .subscribe()
 		
 		store.dispatch(ChangeTextValueAction(newText: "New text 1"))
 		store.dispatch(ChangeTextValueAction(newText: "New text 2"))
@@ -284,12 +259,12 @@ class RxDataFlowTests: XCTestCase {
 		                                 initialState: TestState(text: "Initial value"))
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
-		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
-			completeExpectation.fulfill()
-		})
-		
 		var stateHistory = [String]()
-		_ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
+		_ = store.state
+            .do(onNext: { stateHistory.append($0.state.text) })
+            .filter { $0.setBy is CompletionAction }
+            .do(onNext: { _ in completeExpectation.fulfill() })
+            .subscribe()
 		
 		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
 		
@@ -331,12 +306,12 @@ class RxDataFlowTests: XCTestCase {
 		                                 initialState: TestState(text: "Initial value"))
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
-		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
-			completeExpectation.fulfill()
-		})
-		
 		var stateHistory = [String]()
-		_ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
+		_ = store.state
+            .do(onNext: { stateHistory.append($0.state.text) })
+            .filter { $0.setBy is CompletionAction }
+            .do(onNext: { _ in completeExpectation.fulfill() })
+            .subscribe()
 		
 		let descriptor1: Observable<TestState> = {
 			return Observable.create { observer in
@@ -385,12 +360,12 @@ class RxDataFlowTests: XCTestCase {
 		                                 initialState: TestState(text: "Initial value"))
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
-		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
-			completeExpectation.fulfill()
-		})
-		
 		var stateHistory = [String]()
-		_ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
+		_ = store.state
+            .do(onNext: { stateHistory.append($0.state.text) })
+            .filter { $0.setBy is CompletionAction }
+            .do(onNext: { _ in completeExpectation.fulfill() })
+            .subscribe()
 		
 		store.dispatch(ChangeTextValueAction(newText: "New text 1"))
 		DispatchQueue.global(qos: .utility).asyncAfter(deadline: DispatchTime.now() + 0.01) { store.dispatch(ChangeTextValueAction(newText: "New text 2")) }
@@ -415,12 +390,12 @@ class RxDataFlowTests: XCTestCase {
 		                                 initialState: TestState(text: "Initial value"))
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
-		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
-			completeExpectation.fulfill()
-		})
-		
 		var stateHistory = [String]()
-		_ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
+		_ = store.state
+            .do(onNext: { stateHistory.append($0.state.text) })
+            .filter { $0.setBy is CompletionAction }
+            .do(onNext: { _ in completeExpectation.fulfill() })
+            .subscribe()
 		
 		let action1Scheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		
@@ -452,12 +427,12 @@ class RxDataFlowTests: XCTestCase {
 		                                 initialState: TestState(text: "Initial value"))
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
-		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
-			completeExpectation.fulfill()
-		})
-		
 		var stateHistory = [String]()
-		_ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
+		_ = store.state
+            .do(onNext: { stateHistory.append($0.state.text) })
+            .filter { $0.setBy is CompletionAction }
+            .do(onNext: { _ in completeExpectation.fulfill() })
+            .subscribe()
 		
 		let actionScheduler = TestScheduler(internalScheduler: SerialDispatchQueueScheduler(qos: .utility))
 		
@@ -490,12 +465,12 @@ class RxDataFlowTests: XCTestCase {
 		                                 scheduler: storeScheduler)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
-		_ = store.state.observeOn(SerialDispatchQueueScheduler(qos: .background)).filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
-			completeExpectation.fulfill()
-		})
-		
 		var stateHistory = [String]()
-		_ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
+		_ = store.state
+            .do(onNext: { stateHistory.append($0.state.text) })
+            .filter { $0.setBy is CompletionAction }
+            .do(onNext: { _ in completeExpectation.fulfill() })
+            .subscribe()
 		
 		let action1 = CustomObservableAction(scheduler: nil, observable: .just(TestState(text: "Action 1 executed")), isSerial: true)
 		let action2 = CustomObservableAction(scheduler: nil, observable: .just(TestState(text: "Action 2 executed")), isSerial: true)
@@ -529,12 +504,12 @@ class RxDataFlowTests: XCTestCase {
 		                                 scheduler: storeScheduler)
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
-		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
-			completeExpectation.fulfill()
-		})
-		
 		var stateHistory = [String]()
-		_ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
+        _ = store.state
+            .do(onNext: { stateHistory.append($0.state.text) })
+            .filter { $0.setBy is CompletionAction }
+            .do(onNext: { _ in completeExpectation.fulfill() })
+            .subscribe()
 		
 		let descriptor: Observable<TestState> = {
 			return Observable.create { observer in
@@ -565,12 +540,12 @@ class RxDataFlowTests: XCTestCase {
 		                                 initialState: TestState(text: "Initial value"))
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
-		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
-			completeExpectation.fulfill()
-		})
-		
 		var stateHistory = [String]()
-		_ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
+		_ = store.state
+            .do(onNext: { stateHistory.append($0.state.text) })
+            .filter { $0.setBy is CompletionAction }
+            .do(onNext: { _ in completeExpectation.fulfill() })
+            .subscribe()
 		
 		let descriptor: Observable<TestState> = {
 			return Observable.create { observer in
@@ -609,12 +584,12 @@ class RxDataFlowTests: XCTestCase {
 		                                 initialState: TestState(text: "Initial value"))
 		let completeExpectation = expectation(description: "Should perform all non-error actions")
 		
-		_ = store.state.filter { $0.setBy is CompletionAction }.subscribe(onNext: { next in
-			completeExpectation.fulfill()
-		})
-		
 		var stateHistory = [String]()
-		_ = store.state.do(onNext: { stateHistory.append($0.state.text) }).subscribe()
+		_ = store.state
+            .do(onNext: { stateHistory.append($0.state.text) })
+            .filter { $0.setBy is CompletionAction }
+            .do(onNext: { _ in completeExpectation.fulfill() })
+            .subscribe()
 		
 		let action1Descriptor: Observable<TestState> = {
 			return Observable.create { observer in
