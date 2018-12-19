@@ -22,18 +22,34 @@ public typealias RxStateMutator<State: RxStateType> = (State) -> (State)
 
 public enum RxReduceResult<State: RxStateType> {
     case error(Error)
-    case single((State) -> State)
-    case multiple(Observable<RxStateMutator<State>>)
+    case single(RxStateMutator<State>)
+    case observable(Observable<RxStateMutator<State>>)
+    case empty
     
     func toObservable() -> Observable<RxStateMutator<State>> {
         switch self {
+        case .empty:
+            return .empty()
         case .error(let e):
             return .error(e)
         case .single(let transform):
             return .just(transform)
-        case .multiple(let observable):
+        case .observable(let observable):
             return observable
         }
+    }
+}
+
+extension RxReduceResult {
+    static func create<Result>(from observable: Observable<Result>,
+                               with transform: @escaping (State, Result) -> State) -> RxReduceResult<State> {
+        let map = observable.map { result in
+            return { state in
+                transform(state, result)
+            }
+        }
+        
+        return RxReduceResult.observable(Observable.create { Disposables.create([map.subscribe($0)]) })
     }
 }
 

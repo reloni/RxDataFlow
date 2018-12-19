@@ -68,7 +68,7 @@ struct CustomDescriptorAction: RxActionType {
 	let descriptor: Observable<RxStateMutator<TestState>>
 	let isSerial: Bool
     var reduceResult: RxReduceResult<TestState> {
-        return RxReduceResult.multiple(descriptor)
+        return RxReduceResult.observable(descriptor)
     }
 }
 
@@ -130,10 +130,10 @@ func testStoreReducer(_ action: RxActionType, currentState: TestState) -> RxRedu
 		switch enumAction {
 		case .inMainScheduler(let descriptor):
 			XCTAssertTrue(Thread.isMainThread)
-            return RxReduceResult.multiple(descriptor)
+            return RxReduceResult.observable(descriptor)
 		case .inCustomScheduler(_, let descriptor):
 			XCTAssertFalse(Thread.isMainThread)
-            return RxReduceResult.multiple(descriptor)
+            return RxReduceResult.observable(descriptor)
 		case .deinitObject:
             return RxReduceResult.single({ _ in return TestState(text: "Deinit object") })
 		}
@@ -141,7 +141,7 @@ func testStoreReducer(_ action: RxActionType, currentState: TestState) -> RxRedu
         XCTAssertEqual(action.stateText, currentState.text)
         return RxReduceResult.single({ _ in return TestState(text: action.newText) })
 	default:
-        return RxReduceResult.multiple(.empty())
+        return RxReduceResult.observable(.empty())
 	}
 }
 
