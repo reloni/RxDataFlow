@@ -26,23 +26,19 @@ public enum RxReduceResult<State: RxStateType> {
     case observable(Observable<RxStateMutator<State>>)
     case empty
     
-    func toObservable() -> Observable<RxStateMutator<State>> {
+    internal func asObservable() -> Observable<RxStateMutator<State>> {
         switch self {
-        case .empty:
-            return .empty()
-        case .error(let e):
-            return .error(e)
-        case .single(let transform):
-            return .just(transform)
-        case .observable(let observable):
-            return observable
+        case .empty: return .empty()
+        case .error(let e): return .error(e)
+        case .single(let transform): return .just(transform)
+        case .observable(let observable): return observable
         }
     }
 }
 
 public extension RxReduceResult {
     static func create<Result>(from observable: Observable<Result>,
-                               with transform: @escaping (State, Result) -> State) -> RxReduceResult<State> {
+                               transform: @escaping (State, Result) -> State) -> RxReduceResult<State> {
         let map = observable.map { result in
             return { state in
                 transform(state, result)
@@ -211,7 +207,7 @@ public class RxDataFlowController<State: RxStateType> {
 		let schedulerForAction = scheduler(for: action, owner: owner)
             
 		return Observable<RxActionType>.from([action], scheduler: schedulerForAction)
-			.flatMap { act in self.reducer(act, self.currentState.state).toObservable().subscribeOn(schedulerForAction) }
+			.flatMap { act in self.reducer(act, self.currentState.state).asObservable().subscribeOn(schedulerForAction) }
 			.observeOn(schedulerForAction)
 			.flatMap { result -> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> in
 				return .just((setBy: action, mutator: result))
