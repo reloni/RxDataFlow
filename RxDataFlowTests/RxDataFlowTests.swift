@@ -211,6 +211,39 @@ class RxDataFlowTests: XCTestCase {
 		let result = XCTWaiter().wait(for: [errorExpectation], timeout: timeout)
 		XCTAssertEqual(result, .completed)
 	}
+    
+    func testPorformActionAndPropagateError_2() {
+        let stateObservable: Observable<TestState> = Observable.create {
+            $0.onNext(TestState(text: ""))
+            $0.onCompleted()
+            return Disposables.create()
+        }
+        
+        let error = stateObservable.map { e -> TestState in
+            throw TestError.someError
+        }
+        
+        let store = RxDataFlowController(reducer: testStoreReducer,
+                                         initialState: TestState(text: "Initial value"))
+        let errorExpectation = expectation(description: "Should rise error")
+
+        _ = store.errors.subscribe(onNext: { e in
+            XCTAssertEqual(TestError.someError, e.error as! TestError)
+            XCTAssertTrue(e.action is CustomObservableAction)
+            XCTAssertEqual("New text before error", e.state.text)
+            if case TestError.someError = e.error {
+                errorExpectation.fulfill()
+            }
+        })
+        store.dispatch(ChangeTextValueAction(newText: "New text 1"))
+        store.dispatch(ChangeTextValueAction(newText: "New text 2"))
+        store.dispatch(ChangeTextValueAction(newText: "New text before error"))
+        store.dispatch(CustomObservableAction(scheduler: nil, observable: error, isSerial: true))
+        
+
+        let result = XCTWaiter().wait(for: [errorExpectation], timeout: timeout)
+        XCTAssertEqual(result, .completed)
+    }
 	
 	func testContinueWorkAfterErrorAction() {
 		let store = RxDataFlowController(reducer: testStoreReducer,
