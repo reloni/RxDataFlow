@@ -9,3 +9,6 @@ excluded:
 
 large_tuple:
   - 3
+
+line_length:
+  warning: 130

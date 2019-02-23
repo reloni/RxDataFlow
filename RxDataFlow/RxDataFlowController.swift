@@ -9,132 +9,6 @@
 import Foundation
 import RxSwift
 
-/**
-Describes type that may be used as state by flow controller
-*/
-public protocol RxStateType { }
-
-/**
-Function used by flow controller in order to mutate state.
-Flow controller passes current state to function and uses returned instance as new state
-*/
-public typealias RxStateMutator<State: RxStateType> = (State) -> (State)
-
-/**
- Type returned by reducer function.
-*/
-public enum RxReduceResult<State: RxStateType> {
-    /// Represents error that will be passed to errors Observable
-    case error(Error)
-    /// Single state mutation
-    case single(RxStateMutator<State>)
-    /// Represents Observable that may mutate state multiple times
-    case observable(Observable<RxStateMutator<State>>)
-    /// Empty result, no state changes will occur
-    case empty
-    
-    internal func asObservable() -> Observable<RxStateMutator<State>> {
-        switch self {
-        case .empty: return .empty()
-        case .error(let e): return .error(e)
-        case .single(let transform): return .just(transform)
-        case .observable(let observable): return observable
-        }
-    }
-}
-
-public extension RxReduceResult {
-    /**
-     Create new RxReduceResult.observable case from Observable.
-     - parameter from: Observable that emits elements
-     - parameter transform: Function that transforms current state value and emited element into new state value
-     - returns: New RxReduceResult.observable case
-    */
-    static func create<Result>(from observable: Observable<Result>,
-                               transform: @escaping (State, Result) -> State) -> RxReduceResult<State> {
-        let map = observable.map { result in
-            return { state in
-                transform(state, result)
-            }
-        }
-        
-        return RxReduceResult.observable(Observable.create { Disposables.create([map.subscribe($0)]) })
-    }
-}
-
-/**
- Function used by RxDataFlowController in order to change state
-*/
-public typealias RxReducer<State: RxStateType> = (RxActionType, State) -> RxReduceResult<State>
-
-/**
-Describes action that will be used by flow controller to produce new state
-*/
-public protocol RxActionType {
-	/// Specifies scheduler in which reducer function will be executed. If nil default scheduler will be used
-	var scheduler: ImmediateSchedulerType? { get }
-	/**
-	Specifies is this action serial or not. Flow controller executes serial actions one after another. 
-	If action takes a long time to complete you may set this property to false and flow controller
-	will not wait this action to complete,
-	but execute next action immediately.
-	*/
-	var isSerial: Bool { get }
-}
-
-public extension RxActionType {
-    var scheduler: ImmediateSchedulerType? { return nil }
-    var isSerial: Bool { return true }
-}
-
-/**
-Special action that useful for grouping actions.
-Actions will be executed one after another, execution will be stoped on error.
-*/
-public struct RxCompositeAction: RxActionType {
-	public let scheduler: ImmediateSchedulerType?
-	public let isSerial: Bool
-
-	/// Actions to dispatch
-	public let actions: [RxActionType]
-
-	/// Special action that will be dispatched in case of error
-	public let fallbackAction: RxActionType?
-
-	public init(actions: [RxActionType],
-	            fallbackAction: RxActionType? = nil,
-	            isSerial: Bool = true,
-	            scheduler: ImmediateSchedulerType? = nil) {
-		self.actions = actions
-		self.fallbackAction = fallbackAction
-		self.isSerial = isSerial
-		self.scheduler = scheduler
-	}
-
-	public init(_ actions: RxActionType..., fallbackAction: RxActionType? = nil,
-	            isSerial: Bool = true, scheduler: ImmediateSchedulerType? = nil) {
-		self.actions = actions
-		self.fallbackAction = fallbackAction
-		self.isSerial = isSerial
-		self.scheduler = scheduler
-	}
-}
-
-/// Initial action that used for placeholder to set initial state
-public struct RxInitializationAction: RxActionType {
-	public let isSerial = true
-	public var scheduler: ImmediateSchedulerType?
-}
-
-enum FlowControllerError: Error {
-	case compositeActionError(erroredAction: RxActionType, error: Error)
-}
-
-extension SerialDispatchQueueScheduler {
-    static var defaultControllerScheduler =
-        SerialDispatchQueueScheduler(qos: .userInitiated, internalSerialQueueName: "com.RxDataFlowController.Scheduler")
-}
-
 public class RxDataFlowController<State: RxStateType> {
 	/**
 	Observable sequence that emits new state changes
@@ -193,10 +67,12 @@ public class RxDataFlowController<State: RxStateType> {
 		
 		currentState = (setBy: RxInitializationAction(), state: initialState)
 		
-		actionsQueue.currentItemSubject.observeOn(scheduler)
-			.flatMap { [weak self] action -> Observable<Void> in
-				return self?.observe(action: action) ?? .empty()
-			}.subscribe().disposed(by: bag)
+		actionsQueue
+            .currentItemSubject
+            .observeOn(scheduler)
+			.flatMap { [weak self] action -> Completable in self?.observe(action: action) ?? .empty() }
+            .subscribe()
+            .disposed(by: bag)
 		
 		if let dispatchAction = dispatchAction {
 			dispatch(dispatchAction)
@@ -215,37 +91,22 @@ public class RxDataFlowController<State: RxStateType> {
 		let actionScheduler =  action.scheduler ?? owner?.scheduler
 		return actionScheduler ?? scheduler
 	}
-	
-	private func descriptor(for action: RxActionType, owner: RxCompositeAction? = nil)
-		-> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> {
-		let schedulerForAction = scheduler(for: action, owner: owner)
-            
-		return Observable<RxActionType>.from([action], scheduler: schedulerForAction)
-			.flatMap { act in self.reducer(act, self.currentState.state).asObservable().subscribeOn(schedulerForAction) }
-			.observeOn(schedulerForAction)
-			.flatMap { result -> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> in
-				return .just((setBy: action, mutator: result))
-		}
-	}
-
+    
     private func mutateState(with mutator: RxStateMutator<State>) -> State {
         return mutator(currentState.state)
     }
-
-	private func schedule(
-		actionDescriptor: Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)>,
-		for action: RxActionType)
-		-> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> {
-			guard !action.isSerial else { return actionDescriptor.observeOn(scheduler) }
+    
+    private func setCurrentState(by action: RxActionType, with mutator: RxStateMutator<State>) {
+        currentState = (setBy: action, state: mutateState(with: mutator))
+    }
+	
+	private func schedule(actionJob: Job<State>, for action: RxActionType) -> Job<State> {
+			guard !action.isSerial else { return actionJob.observeOn(scheduler) }
 			
-			actionDescriptor
+			actionJob
 				.observeOn(scheduler)
-				.do(onNext: { [weak self] next in
-                    guard let newState = self?.mutateState(with: next.mutator) else { return }
-                    self?.currentState = (setBy: next.setBy, state: newState)
-					},
-					onError: { [weak self] in self?.propagate(error: $0, from: action) }
-                )
+				.do(onNext: { [weak self] in self?.setCurrentState(by: $0, with: $1) },
+					onError: { [weak self] in self?.propagate(error: $0, from: action) })
 				.subscribeOn(action.scheduler ?? scheduler)
 				.subscribe()
 				.disposed(by: bag)
@@ -253,23 +114,20 @@ public class RxDataFlowController<State: RxStateType> {
 			return .empty()
 	}
 	
-	private func observe(action: RxActionType) -> Observable<Void> {
-		let descriptor: Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> = { [weak self] in
-			guard let object = self else { return .empty() }
+	private func observe(action: RxActionType) -> Completable {
+		let job: Job<State> = { [weak self] in
+			guard let self = self else { return .empty() }
 			
 			guard let compositeAction = action as? RxCompositeAction else {
-				return object.descriptor(for: action)
+				return self.job(forAction: action)
 			}
 			
-			return object.observe(compositeAction: compositeAction)
-			}()
+			return self.job(forCompositeAction: compositeAction)
+        }()
 		
-		return schedule(actionDescriptor: descriptor, for: action)
+		return schedule(actionJob: job, for: action)
 			.observeOn(scheduler)
-			.do(onNext: { [weak self] next in
-                guard let newState = self?.mutateState(with: next.mutator) else { return }
-                self?.currentState = (setBy: next.setBy, state: newState)
-				},
+			.do(onNext: { [weak self] in self?.setCurrentState(by: $0, with: $1) },
 				onError: { [weak self] in
                     self?.propagate(error: $0, from: action)
                     if let fallback = (action as? RxCompositeAction)?.fallbackAction {
@@ -277,27 +135,32 @@ public class RxDataFlowController<State: RxStateType> {
                     }
 				},
 				onDispose: { [weak self] in _ = self?.actionsQueue.dequeue() })
-			.flatMap { _ in return Observable<Void>.just(()) }
-			.catchError { _ in .just(()) }
+			.ignoreElements()
+            .catchError { _ in .empty() }
 	}
+    
+    private func job(forAction action: RxActionType, owner: RxCompositeAction? = nil) -> Job<State> {
+        let schedulerForAction = scheduler(for: action, owner: owner)
+        
+        return Observable<RxActionType>.from([action], scheduler: schedulerForAction)
+            .flatMap { act in self.reducer(act, self.currentState.state).asObservable().subscribeOn(schedulerForAction) }
+            .observeOn(schedulerForAction)
+            .flatMap { result -> Job<State> in return .just((setBy: action, mutator: result)) }
+    }
 	
-	private func observe(compositeAction: RxCompositeAction)
-		-> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> {
+	private func job(forCompositeAction compositeAction: RxCompositeAction) -> Job<State> {
 		return Observable.create { [weak self] observer in
 			guard let object = self else { return Disposables.create() }
 			
 			var compositeQueue = Queue<RxActionType>()
 			
-			let disposable = compositeQueue.currentItemSubject
-				.observeOn(object.scheduler)
-				.flatMap { action -> Observable<RxStateType> in
+			let disposable = compositeQueue.currentItemSubject.observeOn(object.scheduler).flatMap { action -> Observable<RxStateType> in
 				return Observable.create { _ in
-					let descriptor = object
-						.descriptor(for: action, owner: compositeAction)
-						.catchError { error -> Observable<(setBy: RxActionType, mutator: RxStateMutator<State>)> in
-						return .error(FlowControllerError.compositeActionError(erroredAction: action, error: error))
-					}
-					let subscription = object.schedule(actionDescriptor: descriptor, for: action)
+                    let job = object
+                        .job(forAction: action, owner: compositeAction)
+                        .catchError { .error(FlowControllerError.compositeActionError(erroredAction: action, error: $0)) }
+                    
+					let subscription = object.schedule(actionJob: job, for: action)
 						.observeOn(object.scheduler)
 						.do(onNext: { observer.onNext((setBy: $0.setBy, mutator: $0.mutator)) },
 							onError: { observer.onError($0) },
@@ -306,13 +169,11 @@ public class RxDataFlowController<State: RxStateType> {
 						.subscribe()
 					return Disposables.create { subscription.dispose() }
 				}
-				}.subscribe()
+            }.subscribe()
 			
-			for a in compositeAction.actions { compositeQueue.enqueue(a) }
+			compositeAction.actions.forEach { compositeQueue.enqueue($0) }
 			
-			return Disposables.create {
-				disposable.dispose()
-			}
+			return Disposables.create { disposable.dispose() }
 		}
 	}
 	
