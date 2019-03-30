@@ -50,7 +50,7 @@ class ConcurrentCompositeActionTests: XCTestCase {
 		store.dispatch(action1)
 		store.dispatch(RxCompositeAction(action2, action3, action4, action5, isSerial: false))
 		store.dispatch(action6)
-		DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+		DispatchQueue.main.asyncAfter(deadline: .now() + 5.5) {
 			store.dispatch(CompletionAction())
 		}
 		
@@ -99,7 +99,7 @@ class ConcurrentCompositeActionTests: XCTestCase {
 		store.dispatch(RxCompositeAction(action2, action3, isSerial: false))
 		store.dispatch(RxCompositeAction(action4, action5, isSerial: false))
 		store.dispatch(action6)
-		DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+		DispatchQueue.main.asyncAfter(deadline: .now() + 5.5) {
 			store.dispatch(CompletionAction())
 		}
 		
