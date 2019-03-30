@@ -1,3 +1,3 @@
 #!/bin/bash
 
-carthage bootstrap --platform ios --cache-builds
+carthage bootstrap --platform ios,macos --cache-builds
