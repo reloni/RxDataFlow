@@ -11,7 +11,8 @@ import XCTest
 import RxSwift
 
 class ConcurrentCompositeActionTests: XCTestCase {
-	
+	let timeout: TimeInterval = 10
+    
 	override func setUp() {
 		super.setUp()
 		// Put setup code here. This method is called before the invocation of each test method in the class.
@@ -53,7 +54,7 @@ class ConcurrentCompositeActionTests: XCTestCase {
 			store.dispatch(CompletionAction())
 		}
 		
-		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 2.5)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: timeout)
 		
 		XCTAssertEqual(result, .completed)
 		
@@ -102,7 +103,7 @@ class ConcurrentCompositeActionTests: XCTestCase {
 			store.dispatch(CompletionAction())
 		}
 		
-		let result = XCTWaiter().wait(for: [completeExpectation], timeout: 2.5)
+		let result = XCTWaiter().wait(for: [completeExpectation], timeout: timeout)
 		
 		XCTAssertEqual(result, .completed)
 		
