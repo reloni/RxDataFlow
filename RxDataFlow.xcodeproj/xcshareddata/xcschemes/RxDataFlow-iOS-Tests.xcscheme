@@ -40,6 +40,11 @@
                BlueprintName = "RxDataFlowTests"
                ReferencedContainer = "container:RxDataFlow.xcodeproj">
             </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "ConcurrentCompositeActionTests">
+               </Test>
+            </SkippedTests>
          </TestableReference>
       </Testables>
       <MacroExpansion>
