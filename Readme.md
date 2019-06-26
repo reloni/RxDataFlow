@@ -34,11 +34,11 @@ More information will be added soon:)
 <img src="assets/ActionsQueue.png" width="100%" height="100%" />
 
 ## Dependencies
-- [RxSwift](https://github.com/ReactiveX/RxSwift) >= 4.0.0
+- [RxSwift](https://github.com/ReactiveX/RxSwift) >= 5.0.1
 
 ## Requirements
 - Xcode 10.0
-- Swift 4.2
+- Swift 5.0
 
 ## Installation
 - Using [Carthage](https://github.com/Carthage/Carthage)

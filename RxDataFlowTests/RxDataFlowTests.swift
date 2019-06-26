@@ -66,10 +66,10 @@ class RxDataFlowTests: XCTestCase {
 		
 		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
 		
-		let action1 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (1)")).delay(0.1, scheduler: delayScheduler), isSerial: true)
-		let action2 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (2)")).delay(0.3, scheduler: delayScheduler), isSerial: true)
-		let action3 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (3)")).delay(0.7, scheduler: delayScheduler), isSerial: true)
-		let action4 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (4)")).delay(1.0, scheduler: delayScheduler), isSerial: true)
+		let action1 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (1)")).delay(.milliseconds(100), scheduler: delayScheduler), isSerial: true)
+		let action2 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (2)")).delay(.milliseconds(300), scheduler: delayScheduler), isSerial: true)
+		let action3 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (3)")).delay(.milliseconds(700), scheduler: delayScheduler), isSerial: true)
+		let action4 = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed (4)")).delay(.milliseconds(1000), scheduler: delayScheduler), isSerial: true)
 		
 		store.dispatch(action1)
 		store.dispatch(action2)
@@ -113,7 +113,7 @@ class RxDataFlowTests: XCTestCase {
 		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
 		
 		for i in 0..<1000 {
-			let action = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed \(i)")).delay(0.001, scheduler: delayScheduler), isSerial: true)
+			let action = CustomObservableAction(scheduler: nil, observable: Observable.just(TestState(text: "Action executed \(i)")).delay(.milliseconds(1), scheduler: delayScheduler), isSerial: true)
 			store.dispatch(action)
 		}
 		
@@ -302,7 +302,7 @@ class RxDataFlowTests: XCTestCase {
 		let delayScheduler = SerialDispatchQueueScheduler(qos: .utility)
 		
 		for i in 1...11 {
-			let after = (i % 2 == 0) ? 0.15 : 0
+            let after: RxTimeInterval = (i % 2 == 0) ? .milliseconds(150) : .milliseconds(0)
 			let action: RxActionType = {
 				if i == 11 {
 					return CompletionAction()

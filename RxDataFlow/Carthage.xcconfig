@@ -1,10 +1,2 @@
-//
-//  Carthage.xcconfig
-//  PMHTTP
-//
-//  Created by Lily Ballard on 12/14/15.
-//  Copyright © 2015 Postmates. All rights reserved.
-//
-
 FRAMEWORK_SEARCH_PATHS[sdk=macosx*] = $(SRCROOT)/Carthage/Build/Mac/ $(inherited)
 FRAMEWORK_SEARCH_PATHS[sdk=iphone*] = $(SRCROOT)/Carthage/Build/iOS/ $(inherited)
