@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -12,12 +12,13 @@
 		6E11D4D31E9033E10032ACB9 /* SupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E11D4D21E9033E10032ACB9 /* SupportTests.swift */; };
 		6E130F2C1DCA66A2006DC5ED /* RxDataFlow.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E130F221DCA66A1006DC5ED /* RxDataFlow.framework */; };
 		6E2473131DCA6A1800408217 /* RxDataFlowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E2473121DCA6A1800408217 /* RxDataFlowController.swift */; };
-		6E2473161DCA6AB800408217 /* RxSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E2473151DCA6AB800408217 /* RxSwift.framework */; };
-		6E3E18011DCE28D20087604D /* RxSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E2473151DCA6AB800408217 /* RxSwift.framework */; };
 		6E4D970E1F0D71E200B1CC49 /* CompositeActionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E0DE6231E633440001DEC9F /* CompositeActionsTests.swift */; };
 		6E7DC7F21F93C83B00608F26 /* ConcurrentActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E4364871EC05A7D00D126B2 /* ConcurrentActionTests.swift */; };
 		6E7DC7F31F93C8AE00608F26 /* ConcurrentCompositeActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E75DF391ECAAFBD00C911B4 /* ConcurrentCompositeActionTests.swift */; };
 		6E7DC7F41F93C8D400608F26 /* RxDataFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E130F301DCA66A2006DC5ED /* RxDataFlowTests.swift */; };
+		EA30C1F526064C4700D25CED /* RxSwift.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = EA30C1F426064C4700D25CED /* RxSwift.xcframework */; };
+		EA30C1F626064C4700D25CED /* RxSwift.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = EA30C1F426064C4700D25CED /* RxSwift.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		EA30C1FD26064CDF00D25CED /* RxSwift.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = EA30C1F426064C4700D25CED /* RxSwift.xcframework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,6 +30,20 @@
 			remoteInfo = RxState;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		EA30C1F726064C4700D25CED /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				EA30C1F626064C4700D25CED /* RxSwift.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		6E087A631FF7C8AA005BB70D /* Queue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Queue.swift; sourceTree = "<group>"; };
@@ -45,6 +60,7 @@
 		6E7DC7F01F93C5F100608F26 /* RxBlocking.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RxBlocking.framework; path = Carthage/Build/iOS/RxBlocking.framework; sourceTree = "<group>"; };
 		6E97D66D1E5EDA4A00EC8305 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6EE39C4B1E5ED9520045A6E8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		EA30C1F426064C4700D25CED /* RxSwift.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = RxSwift.xcframework; path = Carthage/Build/RxSwift.xcframework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -52,7 +68,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6E2473161DCA6AB800408217 /* RxSwift.framework in Frameworks */,
+				EA30C1F526064C4700D25CED /* RxSwift.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -60,7 +76,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6E3E18011DCE28D20087604D /* RxSwift.framework in Frameworks */,
+				EA30C1FD26064CDF00D25CED /* RxSwift.xcframework in Frameworks */,
 				6E130F2C1DCA66A2006DC5ED /* RxDataFlow.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -114,6 +130,7 @@
 		6E2473141DCA6AB700408217 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				EA30C1F426064C4700D25CED /* RxSwift.xcframework */,
 				6E7DC7F01F93C5F100608F26 /* RxBlocking.framework */,
 				6E2473151DCA6AB800408217 /* RxSwift.framework */,
 			);
@@ -142,6 +159,7 @@
 				6E130F1F1DCA66A1006DC5ED /* Headers */,
 				6E130F201DCA66A1006DC5ED /* Resources */,
 				6E667F721F952EFA00DF3E15 /* SwiftLint */,
+				EA30C1F726064C4700D25CED /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -159,7 +177,6 @@
 				6E130F271DCA66A2006DC5ED /* Sources */,
 				6E130F281DCA66A2006DC5ED /* Frameworks */,
 				6E130F291DCA66A2006DC5ED /* Resources */,
-				6E2473171DCA6AD700408217 /* Copy carthage frameworks */,
 			);
 			buildRules = (
 			);
@@ -200,6 +217,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = 6E130F181DCA66A1006DC5ED;
@@ -231,21 +249,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		6E2473171DCA6AD700408217 /* Copy carthage frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/Carthage/Build/iOS/RxSwift.framework",
-			);
-			name = "Copy carthage frameworks";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "/usr/local/bin/carthage copy-frameworks\n";
-		};
 		6E667F721F952EFA00DF3E15 /* SwiftLint */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -406,7 +409,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
@@ -431,7 +435,11 @@
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/RxDataFlow/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.AntonEfimenko.RxState;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -457,7 +465,11 @@
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/RxDataFlow/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.AntonEfimenko.RxState;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -476,7 +488,11 @@
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
 				INFOPLIST_FILE = RxDataFlowTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.AntonEfimenko.RxStateTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
@@ -494,7 +510,11 @@
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
 				INFOPLIST_FILE = RxDataFlowTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.AntonEfimenko.RxStateTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;

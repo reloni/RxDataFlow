@@ -39,7 +39,7 @@ class RxDataFlowTests: XCTestCase {
     
 	func testObjectPassedToControllerDeinited() {
 		let store: TestFlowController! = TestFlowController(reducer: testStoreReducer,
-															initialState: TestState(text: "Initial value"))
+                                                            initialState: TestState(text: "Initial value"))
 		
 		let deinitExpectation = expectation(description: "Object should be deinited")
 		
